@@ -1,0 +1,97 @@
+# V7 Self-Healing Trading Engine
+
+## 🎯 Mục tiêu
+Xây dựng hệ thống:
+- tự audit logic mỗi ngày
+- tự phát hiện lỗi / điểm yếu
+- tự đề xuất patch
+- tự tối ưu config
+- tiến hóa dần theo dữ liệu thực
+
+---
+
+# 🧠 1. KIẾN TRÚC TỔNG
+
+## 1.1 Components
+
+- Audit Engine
+- Reflection Engine
+- Learning Engine
+- Auto Fix Engine
+- Config Optimizer
+- Report Engine
+
+---
+
+# 🔍 2. AUDIT ENGINE
+
+## 2.1 Chức năng
+- scan toàn bộ system behavior
+- phát hiện:
+  - logic sai
+  - logic dư
+  - AI misuse
+  - API waste
+  - state inconsistency
+
+## 2.2 Input
+- logs
+- trades
+- signals
+- rejected signals
+- API call metrics
+
+## 2.3 Output
+- audit_report.json
+
+```json
+{
+  "issues": [
+    {
+      "type": "AI_OVERUSE",
+      "symbol": "SIREN",
+      "detail": "AI called too frequently with low pnl"
+    }
+  ]
+}
+
+# 🧠 Tư duy quan trọng (cực kỳ đáng giá)
+
+Sau khi có V7 này, hệ thống của bạn sẽ chuyển từ:
+
+### V6 (hiện tại)
+- Có logic
+- Có AI
+- Có optimization
+
+➡️ **Reactive system (phản ứng)**
+
+---
+
+### V7 (sau khi build)
+- Tự đánh giá mình
+- Tự tìm lỗi
+- Tự đề xuất cải thiện
+- Tối ưu dần theo dữ liệu
+
+➡️ **Adaptive system (thích nghi)**
+
+---
+
+## Scale-in: `max_scale_in_times` vs “thông minh”
+
+- **`scale_in_count`**: số lần add thực tế (tăng khi `add_to_position` thành công).
+- **`max_scale_in_times` > 0**: trần cứng số lần add (an toàn, dễ hiểu).
+- **`max_scale_in_times` ≤ 0**: **bỏ trần count**; vẫn bị giới hạn bởi `scale_in_risk` (exposure/risk/notional), vùng giá, điểm tin hiệu, PnL cho phép, và **`cooldown_between_scale_ins_seconds`** (thời gian từ trade `scale_in` cuối trong DB).
+- Mặc định config nên dùng **0 + cooldown + risk** thay vì chỉ đếm 1–2 lần.
+
+---
+
+# 🔥 Nếu bạn muốn đi xa hơn nữa (V8)
+
+Tôi có thể build tiếp cho bạn:
+
+👉 **Auto Strategy Evolution Engine**
+- tự tạo strategy mới
+- tự loại bỏ strategy kém
+- tự điều chỉnh tham số theo market regime

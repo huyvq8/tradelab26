@@ -1,0 +1,6 @@
+{
+  "min_profit_factor_improvement_pct": 8,
+  "max_drawdown_increase_pct": 5,
+  "min_trades_ratio": 0.5,
+  "require_min_trades": 5
+}

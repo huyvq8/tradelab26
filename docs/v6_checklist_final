@@ -1,0 +1,309 @@
+# V6 System Brain Audit & Auto-Fix Checklist
+
+## 🎯 Mục tiêu
+Checklist này giúp:
+1. Kiểm tra toàn bộ hệ thống trading v6
+2. Đánh giá “bộ não thật” (Decision + State + Risk + Learning)
+3. Phát hiện logic chưa thông minh / chưa tối ưu
+4. Tạo kế hoạch auto-fix để Cursor tự sửa code
+
+---
+
+# 🧠 0. Định nghĩa "Bộ não v6"
+
+## Brain Components
+- Decision Core (ra quyết định)
+- State Core (trạng thái)
+- Strategy Core (chiến thuật)
+- Risk Core (quản trị rủi ro)
+- Execution Core (thực thi)
+- Reflection Core (học tập)
+- AI Advisory (OpenAI - phụ trợ)
+
+---
+
+# 1. DECISION CORE — RA QUYẾT ĐỊNH
+
+## 1.1 Logic có rõ ràng không
+- [ ] Có flow rõ: signal → filter → decision → execution
+- [ ] Không có decision nằm rải rác nhiều file không kiểm soát
+- [ ] Mỗi quyết định có reason log
+
+## 1.2 Không phụ thuộc AI
+- [ ] Tắt OpenAI → bot vẫn chạy được
+- [ ] Entry / exit logic không phụ thuộc AI
+- [ ] AI chỉ là optional layer
+
+## 1.3 Có guard đầy đủ
+- [ ] max position per symbol
+- [ ] scale-in guard
+- [ ] position age guard
+- [ ] pnl guard
+- [ ] volatility guard
+
+## 🔧 AUTO FIX
+- [ ] Gom decision về 1 module (decision_engine)
+- [ ] Thêm reason log cho mọi decision
+- [ ] Tách AI khỏi decision chính
+
+---
+
+# 2. STATE CORE — TRẠNG THÁI
+
+## 2.1 Có state trung tâm
+- [ ] market state
+- [ ] account state
+- [ ] position state
+- [ ] order state
+
+## 2.2 Không gọi API trực tiếp lung tung
+- [ ] Module không gọi Binance trực tiếp nếu có state
+- [ ] Có cache layer trung gian
+
+## 2.3 State luôn đồng bộ
+- [ ] Sau trade → state update ngay
+- [ ] Sau cancel → state sạch
+- [ ] Không có stale state
+
+## 🔧 AUTO FIX
+- [ ] Tạo StateManager
+- [ ] Refactor module dùng state thay vì API
+- [ ] Add invalidate logic
+
+---
+
+# 3. STRATEGY CORE — CHIẾN THUẬT
+
+## 3.1 Strategy có khác nhau thật không
+- [ ] trend_following ≠ breakout_momentum
+- [ ] mean_reversion có logic riêng
+- [ ] không copy-paste logic
+
+## 3.2 Routing đúng
+- [ ] token_type ảnh hưởng strategy
+- [ ] regime ảnh hưởng strategy
+- [ ] blocked strategy không bị chạy
+
+## 3.3 Không spam signal
+- [ ] cùng signal không lặp mỗi cycle
+- [ ] symbol full position không scan liên tục
+
+## 🔧 AUTO FIX
+- [ ] Tách strategy thành module riêng
+- [ ] Thêm cooldown scan symbol
+- [ ] Thêm signal deduplication
+
+---
+
+# 4. RISK CORE — QUẢN TRỊ RỦI RO
+
+## 4.1 Position control
+- [ ] max position per symbol
+- [ ] max scale-in
+- [ ] position sizing hợp lý
+
+## 4.2 TP/SL logic
+- [ ] không update TP/SL quá sớm
+- [ ] có min_age_minutes
+- [ ] có min_pnl_pct
+
+## 4.3 Không churn TP/SL
+- [ ] không cancel + place liên tục
+- [ ] có threshold thay đổi
+
+## 🔧 AUTO FIX
+- [ ] Thêm guard age/pnl
+- [ ] Thêm min change threshold
+- [ ] Cache algo orders đúng
+
+---
+
+# 5. EXECUTION CORE — THỰC THI
+
+## 5.1 Không request dư
+- [ ] không gọi exchangeInfo mỗi lệnh
+- [ ] không gọi positionSide mỗi cycle
+- [ ] không gọi balance liên tục
+
+## 5.2 Cache đúng
+- [ ] balance cache
+- [ ] hedge mode cache
+- [ ] exchangeInfo cache
+- [ ] algo order cache
+
+## 5.3 Idempotent
+- [ ] không mở trùng lệnh
+- [ ] retry không gây duplicate
+
+## 🔧 AUTO FIX
+- [ ] Thêm cache layer execution
+- [ ] Refactor execution pipeline
+- [ ] Thêm idempotency key
+
+---
+
+# 6. AI ADVISORY — OPENAI
+
+## 6.1 Không bị lạm dụng
+- [ ] không gọi mỗi cycle
+- [ ] có cooldown
+
+## 6.2 Có reason rõ
+- [ ] AI_CALL reason=...
+- [ ] log đầy đủ context
+
+## 6.3 Có value thật
+- [ ] AI không chỉ “nói cho hay”
+- [ ] AI thay đổi decision hợp lý
+
+## 🔧 AUTO FIX
+- [ ] Thêm cooldown logic
+- [ ] Thêm reason logging
+- [ ] Disable AI cho test A/B
+
+---
+
+# 7. REFLECTION CORE — HỌC TẬP
+
+## 7.1 Có journal
+- [ ] log entry
+- [ ] log exit
+- [ ] log reject
+
+## 7.2 Có learning thật
+- [ ] strategy performance
+- [ ] token performance
+- [ ] error pattern
+
+## 7.3 Không fake learning
+- [ ] không chỉ log mà không dùng lại
+- [ ] có config adjust
+
+## 🔧 AUTO FIX
+- [ ] Thêm trade journal
+- [ ] Thêm report engine
+- [ ] Thêm config auto-tuning
+
+---
+
+# 8. MARKET OPTIMIZATION
+
+## 8.1 API optimization
+- [ ] không gọi spot khi futures
+- [ ] /time có cache
+- [ ] klines có TTL
+- [ ] quote regime có cache
+
+## 8.2 Websocket
+- [ ] market ws dùng đúng
+- [ ] user stream singleton
+- [ ] không reconnect spam
+
+## 🔧 AUTO FIX
+- [ ] Thêm websocket fallback
+- [ ] Fix lifecycle user stream
+- [ ] Cache market data
+
+---
+
+# 9. COMPUTE OPTIMIZATION
+
+## 9.1 Không recompute dư
+- [ ] token features cache
+- [ ] classification cache
+- [ ] routing cache
+
+## 9.2 Không scan dư
+- [ ] symbol full position không scan mỗi 10s
+- [ ] signal cooldown
+
+## 🔧 AUTO FIX
+- [ ] Tách slow vs fast features
+- [ ] Thêm scan cooldown
+- [ ] Refactor pipeline compute
+
+---
+
+# 10. SCHEDULER / RUNTIME
+
+## 10.1 Cycle ổn định
+- [ ] không skip job thường xuyên
+- [ ] cycle < interval
+
+## 10.2 Không block
+- [ ] execution không block main loop
+- [ ] AI không block cycle
+
+## 🔧 AUTO FIX
+- [ ] Tách execution async
+- [ ] Tăng interval nếu cần
+- [ ] Optimize heavy tasks
+
+---
+
+# 🚨 11. RED FLAGS
+
+Nếu có bất kỳ:
+- [ ] AI call không rõ reason
+- [ ] TP/SL bị update liên tục
+- [ ] cùng signal lặp vô hạn
+- [ ] state bị lệch thực tế
+- [ ] request API tăng đột biến
+- [ ] log spam nhưng không có insight
+- [ ] learning không ảnh hưởng decision
+
+→ Hệ thống CHƯA thông minh thật
+
+---
+
+# 📊 12. FINAL OUTPUT (Cursor phải tạo)
+
+## A. PASS / FAIL
+- từng module
+
+## B. BUG LIST
+- file
+- dòng
+- mô tả lỗi
+
+## C. AUTO FIX PLAN
+- patch cụ thể
+- module cần sửa
+
+## D. OPTIMIZATION PLAN
+- P0: fix ngay
+- P1: cải thiện
+- P2: nâng cấp
+
+---
+
+# 🤖 PROMPT CHO CURSOR
+
+Hãy:
+1. Đọc toàn bộ codebase v6
+2. So sánh với checklist này
+3. Tìm:
+   - logic sai
+   - logic dư
+   - AI misuse
+   - API waste
+   - state inconsistency
+4. Xuất:
+   - report chi tiết
+   - danh sách bug
+   - patch plan theo file/module
+   - code đề xuất sửa
+
+Yêu cầu:
+- không trả lời chung chung
+- phải chỉ ra file cụ thể
+- phải có đề xuất sửa code
+- ưu tiên fix P0 trước
+
+---
+
+## 📎 Kết quả audit (Cursor / 2026-03-19)
+
+- Báo cáo chi tiết PASS/FAIL, bug list, patch plan: **`docs/v6_audit_report.md`**
+- P0 đã xử lý: đồng nhất **daily R** Kill switch ↔ Dashboard (`core/risk/daily_r.py`)
+- Bổ sung: `cycle.run()` trả `daily_realized_r` / `daily_realized_usd`; Worker in trong dòng tóm tắt cycle

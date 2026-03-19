@@ -1,0 +1,10 @@
+{
+  "strategies": {
+    "trend_following": { "enabled": true },
+    "breakout_momentum": { "enabled": true },
+    "mean_reversion": { "enabled": true },
+    "liquidity_sweep_reversal": { "enabled": true }
+  },
+  "params": {},
+  "disabled_under_regime": {}
+}

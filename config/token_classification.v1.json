@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "major_symbols": ["BTC", "ETH"],
+  "volume_tiers": {
+    "high_min": 50000000,
+    "medium_min": 5000000,
+    "low_max": 5000000
+  },
+  "atr_pct_tiers": {
+    "low_max": 2.0,
+    "medium_max": 4.0,
+    "high_max": 8.0
+  },
+  "wick_ratio_noisy_min": 2.0,
+  "pump_frequency_low_cap_min": 4,
+  "pump_frequency_meme_min": 6,
+  "feature_lookback": 20,
+  "pump_pct_threshold": 5.0
+}

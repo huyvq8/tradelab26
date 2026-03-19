@@ -1,0 +1,59 @@
+{
+  "scale_in": {
+    "enabled": true,
+    "allow_same_symbol_scale_in": true,
+    "allow_only_same_side": true,
+    "max_scale_in_times": 0,
+    "max_total_entries_per_position": 2,
+    "min_signal_score_to_scale_in": 0.72,
+    "min_confidence_to_scale_in": 0.70,
+    "require_signal_freshness_seconds": 180,
+    "cooldown_between_scale_ins_seconds": 900,
+    "allow_scale_in_when_pnl_negative": false,
+    "allow_scale_in_when_pnl_positive": true,
+    "min_position_age_seconds": 120,
+    "max_position_age_hours": 48
+  },
+  "scale_in_risk": {
+    "max_symbol_exposure_pct_of_equity": 0.50,
+    "max_symbol_margin_pct_of_equity": 0.20,
+    "max_symbol_risk_pct_of_equity": 0.01,
+    "max_portfolio_risk_pct_of_equity": 0.04,
+    "max_add_notional_pct_of_existing": 1.0,
+    "min_add_notional_usd": 25,
+    "max_add_notional_usd": 300,
+    "max_total_position_notional_usd": 1000
+  },
+  "scale_in_price_rules": {
+    "entry_zone_pct": 0.004,
+    "min_add_distance_pct": 0,
+    "max_chase_distance_from_signal_entry_pct": 0.005,
+    "require_better_or_equal_price": false,
+    "allow_breakout_add": true,
+    "breakout_add_buffer_pct": 0.002
+  },
+  "scale_in_position_rules": {
+    "reject_if_reduce_only_pending": true,
+    "reject_if_close_signal_active": true,
+    "reject_if_stoploss_too_close": true,
+    "min_remaining_distance_to_sl_pct": 0.004,
+    "reject_if_liquidation_distance_pct_below": 0.03,
+    "reject_if_position_in_recovery_mode": true
+  },
+  "scale_in_strategy_rules": {
+    "add_only_different_strategy": false,
+    "allow_same_strategy_if_score_improves_by": 0.08,
+    "allowed_regimes": ["trend", "breakout", "momentum", "high_momentum"],
+    "blocked_regimes": ["chop", "high_noise"],
+    "require_htf_alignment": false,
+    "require_same_direction_bias": true
+  },
+  "scale_in_sizing": {
+    "mode": "risk_based",
+    "fixed_add_usd": 50,
+    "ladder_multipliers": [1.0, 0.75, 0.5],
+    "score_weighted": true,
+    "pnl_weighted": false,
+    "volatility_adjusted": false
+  }
+}

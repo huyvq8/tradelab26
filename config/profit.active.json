@@ -1,0 +1,56 @@
+{
+  "volatility_guard": {
+    "enabled": true,
+    "atr_block_pct": 0.06,
+    "atr_reduce_pct": 0.04,
+    "atr_reduce_size_pct": 0.5,
+    "change_24h_reduce_abs": 30.0,
+    "change_24h_reduce_size_pct": 0.25
+  },
+  "sizing": {
+    "enabled": true,
+    "confidence_multipliers": [
+      {"max": 0.6, "mult": 0.75},
+      {"max": 0.7, "mult": 1.0},
+      {"max": 1.0, "mult": 1.2}
+    ],
+    "regime_scores": {
+      "high_momentum": 1.0,
+      "risk_off": 0.4,
+      "balanced": 0.85
+    }
+  },
+  "allocation": {
+    "max_portfolio_heat_r": 4.0,
+    "same_regime_reduce": 0.8,
+    "same_strategy_reduce": 0.75
+  },
+  "strategy_weight": {
+    "lookback_days": 30,
+    "min_sample": 5,
+    "weight_min": 0.25,
+    "weight_max": 1.5
+  },
+  "proactive_exit": {
+    "enabled": true,
+    "profit_protection_activation_r": 1.5,
+    "profit_protection_activation_roi_pct": 40.0,
+    "partial_take_profit_pct": 0.5,
+    "trailing_sl_mode": "lock_profit_r",
+    "proactive_exit_threshold": 0.6,
+    "tp1_pct_from_entry": 6.0,
+    "tp2_pct_from_entry": 10.0,
+    "reversal_signals_weights": {
+      "close_below_ema": 0.25,
+      "break_swing_low": 0.2,
+      "bearish_engulfing": 0.2,
+      "volume_spike_bearish": 0.15,
+      "lower_high_lower_low": 0.1,
+      "momentum_weakening": 0.1
+    },
+    "ema_period": 9,
+    "swing_low_lookback": 5,
+    "volume_spike_ratio": 2.0,
+    "min_candles_for_score": 10
+  }
+}

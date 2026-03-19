@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pandas
+numpy
+requests
+python-telegram-bot
+plotly
+pydantic-settings
+python-dotenv
+sqlalchemy
+httpx
+streamlit
+APScheduler
+openai>=1.0.0
+websocket-client>=1.0.0

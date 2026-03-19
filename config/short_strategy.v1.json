@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "min_score": 7,
+  "enable_pump_exhaustion": true,
+  "enable_bull_trap": true,
+  "enable_trend_pullback": true,
+  "filters": {
+    "allow_short_vs_weak_htf_bull": false,
+    "max_invalidation_distance_pct": 0.05
+  },
+  "sl_tp_rules": {
+    "sl_buffer_pct": 0.003,
+    "min_rr": 1.5
+  },
+  "max_concurrent_shorts": 2,
+  "cooldown_bars_after_short": 4
+}

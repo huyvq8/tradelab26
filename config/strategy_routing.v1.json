@@ -1,0 +1,86 @@
+{
+  "major": {
+    "allowed_strategies": ["trend_following", "breakout_momentum", "mean_reversion", "liquidity_sweep_reversal"],
+    "banned_strategies": [],
+    "shortability": "restricted",
+    "hedge_policy": "allowed",
+    "short_min_score_override": 9,
+    "risk_profile": {
+      "max_leverage": 3,
+      "risk_per_trade_pct": 0.5,
+      "min_rr": 1.5,
+      "tp_style": "scaled",
+      "timeout_bars": 48
+    }
+  },
+  "large_cap_alt": {
+    "allowed_strategies": ["trend_following", "breakout_momentum", "mean_reversion", "liquidity_sweep_reversal"],
+    "banned_strategies": [],
+    "shortability": "allowed",
+    "hedge_policy": "restricted",
+    "short_min_score_override": 7,
+    "risk_profile": {
+      "max_leverage": 5,
+      "risk_per_trade_pct": 0.6,
+      "min_rr": 1.5,
+      "tp_style": "scaled",
+      "timeout_bars": 36
+    }
+  },
+  "mid_cap_alt": {
+    "allowed_strategies": ["trend_following", "breakout_momentum", "mean_reversion", "liquidity_sweep_reversal"],
+    "banned_strategies": [],
+    "shortability": "allowed",
+    "hedge_policy": "restricted",
+    "short_min_score_override": 7,
+    "risk_profile": {
+      "max_leverage": 5,
+      "risk_per_trade_pct": 0.5,
+      "min_rr": 1.5,
+      "tp_style": "scaled",
+      "timeout_bars": 24
+    }
+  },
+  "low_cap": {
+    "allowed_strategies": ["trend_following", "breakout_momentum", "mean_reversion"],
+    "banned_strategies": ["liquidity_sweep_reversal"],
+    "shortability": "restricted",
+    "hedge_policy": "disabled",
+    "short_min_score_override": 11,
+    "risk_profile": {
+      "max_leverage": 3,
+      "risk_per_trade_pct": 0.3,
+      "min_rr": 1.5,
+      "tp_style": "fast",
+      "timeout_bars": 12
+    }
+  },
+  "meme": {
+    "allowed_strategies": ["trend_following", "breakout_momentum"],
+    "banned_strategies": ["mean_reversion", "liquidity_sweep_reversal"],
+    "shortability": "disabled",
+    "hedge_policy": "disabled",
+    "short_min_score_override": 999,
+    "risk_profile": {
+      "max_leverage": 2,
+      "risk_per_trade_pct": 0.25,
+      "min_rr": 1.5,
+      "tp_style": "fast",
+      "timeout_bars": 8
+    }
+  },
+  "narrative": {
+    "allowed_strategies": ["trend_following", "breakout_momentum", "mean_reversion", "liquidity_sweep_reversal"],
+    "banned_strategies": [],
+    "shortability": "allowed",
+    "hedge_policy": "restricted",
+    "short_min_score_override": 8,
+    "risk_profile": {
+      "max_leverage": 4,
+      "risk_per_trade_pct": 0.5,
+      "min_rr": 1.5,
+      "tp_style": "scaled",
+      "timeout_bars": 20
+    }
+  }
+}

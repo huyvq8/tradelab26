@@ -1,0 +1,6 @@
+{
+  "max_concurrent_trades": 3,
+  "default_risk_pct": 0.01,
+  "max_daily_loss_pct": 0.03,
+  "default_capital_usd": 1000.0
+}

@@ -1,0 +1,12 @@
+{
+  "enabled": false,
+  "only_if_in_profit": true,
+  "min_profit_to_hedge": 0,
+  "min_profit_r": 1.0,
+  "allow_mtf": true,
+  "max_hedge_ratio": 0.5,
+  "min_hedge_ratio": 0.2,
+  "max_hedge_duration_bars": 24,
+  "unwind_on_pullback_done": true,
+  "unwind_on_timeout": true
+}
