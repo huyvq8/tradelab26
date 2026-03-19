@@ -1,0 +1,10 @@
+{
+  "base_to_sector": {
+    "BTC": "maj",
+    "ETH": "maj",
+    "BNB": "maj",
+    "SOL": "maj",
+    "ZEC": "privacy",
+    "XMR": "privacy"
+  }
+}

@@ -39,6 +39,62 @@ def ensure_positions_hedge_column():
                 raise
 
 
+def ensure_positions_entry_regime_column():
+    """Add positions.entry_regime if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE positions ADD COLUMN entry_regime VARCHAR(40)"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            if "duplicate column" not in str(e).lower() and "already exists" not in str(e).lower():
+                raise
+
+
+def ensure_positions_capital_bucket_column():
+    """Add positions.capital_bucket if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE positions ADD COLUMN capital_bucket VARCHAR(16) DEFAULT 'core'"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            if "duplicate column" not in str(e).lower() and "already exists" not in str(e).lower():
+                raise
+
+
+def ensure_trades_capital_bucket_column():
+    """Add trades.capital_bucket if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE trades ADD COLUMN capital_bucket VARCHAR(16) DEFAULT 'core'"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            if "duplicate column" not in str(e).lower() and "already exists" not in str(e).lower():
+                raise
+
+
+def ensure_journal_capital_bucket_column():
+    """Add journal_entries.capital_bucket if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE journal_entries ADD COLUMN capital_bucket VARCHAR(16)"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            if "duplicate column" not in str(e).lower() and "already exists" not in str(e).lower():
+                raise
+
+
 def ensure_journal_setup_hedge_columns():
     """Add journal_entries setup_type, hedge, token_intelligence columns if missing (SQLite)."""
     if "sqlite" not in (settings.database_url or "").lower():

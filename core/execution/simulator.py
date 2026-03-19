@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from core.config import settings
 from core.portfolio.models import Portfolio, Position, Trade
+from core.portfolio.capital_split import normalize_bucket
 from core.strategies.base import StrategySignal
 
 
@@ -25,6 +26,7 @@ class PaperExecutionSimulator:
             else signal.entry_price * (1 - settings.sim_slippage_bps / 10_000)
         )
         quantity = size_usd / entry_price
+        bucket = normalize_bucket(getattr(signal, "capital_bucket", None))
         position = Position(
             portfolio_id=portfolio_id,
             symbol=signal.symbol,
@@ -37,6 +39,8 @@ class PaperExecutionSimulator:
             confidence=signal.confidence,
             opened_at=datetime.utcnow(),
             is_open=True,
+            entry_regime=(getattr(signal, "regime", None) or None),
+            capital_bucket=bucket,
         )
         db.add(position)
         db.flush()
@@ -53,6 +57,7 @@ class PaperExecutionSimulator:
             fee_usd=fee,
             pnl_usd=0.0,
             note=signal.rationale,
+            capital_bucket=bucket,
         )
         db.add(trade)
         db.flush()
@@ -94,6 +99,7 @@ class PaperExecutionSimulator:
         risk_usd = None
         if position.stop_loss is not None:
             risk_usd = abs(position.entry_price - position.stop_loss) * position.quantity
+        bclose = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
             position_id=position.id,
@@ -107,6 +113,7 @@ class PaperExecutionSimulator:
             pnl_usd=round(pnl_net, 4),
             risk_usd=round(risk_usd, 4) if risk_usd is not None else None,
             note=note,
+            capital_bucket=bclose,
         )
         db.add(trade)
         db.flush()
@@ -144,6 +151,7 @@ class PaperExecutionSimulator:
         risk_usd = None
         if position.stop_loss is not None:
             risk_usd = abs(position.entry_price - position.stop_loss) * reduce_quantity
+        bpart = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
             position_id=position.id,
@@ -157,6 +165,7 @@ class PaperExecutionSimulator:
             pnl_usd=round(pnl_net, 4),
             risk_usd=round(risk_usd, 4) if risk_usd is not None else None,
             note=note or "Partial TP (proactive exit engine)",
+            capital_bucket=bpart,
         )
         db.add(trade)
         db.flush()

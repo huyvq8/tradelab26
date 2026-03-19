@@ -1,0 +1,31 @@
+{
+  "enabled": true,
+  "apply_to_strategies": ["trend_following", "breakout_momentum"],
+  "extended_candle": {
+    "enabled": true,
+    "body_range_ratio_min": 0.68,
+    "range_pct_of_price_min": 0.016,
+    "reject_message": "v2: stricter extended-candle gate."
+  },
+  "pullback": {
+    "enabled": true,
+    "chase_top_pct_of_range": 0.1,
+    "require_close_below_prior_high": false,
+    "reject_message": "v2: tighter chase-top band."
+  },
+  "cooldown": {
+    "enabled": true,
+    "seconds_between_entries_per_symbol": 1200,
+    "storage_relative": "storage/entry_cooldown.json"
+  },
+  "signal_levels": {
+    "enabled": true,
+    "atr_period": 14,
+    "sl_atr_mult": 1.3,
+    "tp_atr_mult": 1.85,
+    "min_sl_pct": 1.0,
+    "max_sl_pct": 3.5,
+    "max_tp_pct": 3.5,
+    "min_tp_pct": 1.3
+  }
+}

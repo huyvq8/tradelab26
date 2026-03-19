@@ -1,0 +1,52 @@
+{
+  "before": {
+    "label": "before",
+    "closed_trades": 0
+  },
+  "after": {
+    "label": "after",
+    "sl_fast_lt5min": 130,
+    "closed_trades": 309,
+    "win_rate": 0.3236,
+    "profit_factor": 0.9145,
+    "expectancy_usd": -0.0896,
+    "avg_hold_minutes": 17.82,
+    "avg_tp_distance_pct_at_entry": 7.6492,
+    "avg_realized_over_target_ratio": 0.3243,
+    "sl_loss_lt_5min_count": 130,
+    "sl_loss_lt_5min_pct_of_losses": 0.7263
+  },
+  "decision_log": {
+    "total_lines": 0,
+    "events": {},
+    "reason_codes_top": {},
+    "combo_blocked_events_est": 0,
+    "entry_rejected_count": 0
+  },
+  "combo": {
+    "trend_following+SIREN+long": {
+      "closes_after_split": 257,
+      "win_rate": 0.3113,
+      "sl_loss_lt5min": 115,
+      "note": "Chỉ đếm close trades; signal fire count xem decision_log (entry_rejected / entry_opened)."
+    },
+    "breakout_momentum+SIREN+long": {
+      "closes_after_split": 28,
+      "win_rate": 0.1071,
+      "sl_loss_lt5min": 11,
+      "note": "Chỉ đếm close trades; signal fire count xem decision_log (entry_rejected / entry_opened)."
+    }
+  },
+  "siren_decision_hints": {
+    "symbol": "SIREN",
+    "strategies_filtered": [
+      "trend_following",
+      "breakout_momentum"
+    ],
+    "entry_opened_lines": 0,
+    "entry_rejected_lines": 0,
+    "chase_or_extended_rejects": 0,
+    "combo_blocked_rejects": 0,
+    "top_keys": {}
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "proactive_exit": {
+    "profit_protection_activation_r": 2.25,
+    "profit_protection_activation_roi_pct": 32.0,
+    "partial_1r_fraction": 0.4,
+    "min_hold_minutes_before_move_sl": 25,
+    "tp1_pct_from_entry": 3.0,
+    "tp2_pct_from_entry": 5.5
+  }
+}

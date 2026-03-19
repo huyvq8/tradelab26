@@ -51,4 +51,5 @@ class JournalEntry(Base):
     was_strategy_allowed: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     short_allowed_flag: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     hedge_allowed_flag: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    capital_bucket: Mapped[str | None] = mapped_column(String(16), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

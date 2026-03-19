@@ -13,12 +13,21 @@ BLOCKED_FILE = _DATA_DIR / "blocked_signals.json"
 MAX_ENTRIES = 100
 
 
-def log_rejected(symbol: str, strategy_name: str, reason: str) -> None:
+def log_rejected(
+    symbol: str,
+    strategy_name: str,
+    reason: str,
+    *,
+    reason_code: str | None = None,
+    meta: dict | None = None,
+) -> None:
     entry = {
         "ts": datetime.utcnow().isoformat() + "Z",
         "symbol": symbol,
         "strategy_name": strategy_name,
         "reason": reason,
+        "reason_code": (reason_code or "").strip(),
+        "meta": meta if isinstance(meta, dict) else {},
     }
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
     if BLOCKED_FILE.exists():

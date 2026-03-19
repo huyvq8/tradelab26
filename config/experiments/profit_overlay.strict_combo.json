@@ -1,0 +1,11 @@
+{
+  "combo_performance": {
+    "enabled": true,
+    "lookback_days": 45,
+    "min_sample": 12,
+    "block_pf_below": 0.98,
+    "block_wr_below": 0.4,
+    "soft_pf_below": 1.05,
+    "soft_mult": 0.35
+  }
+}

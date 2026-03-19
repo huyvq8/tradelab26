@@ -16,13 +16,24 @@ _PROFIT_ACTIVE_PATH = _PROJECT_ROOT / "config" / "profit.active.json"
 
 
 def load_profit_config() -> dict:
-    """Đọc config profit layer (profit.active.json). Fallback về settings/env hoặc mặc định."""
+    """Đọc profit.active.json; merge PROFIT_ACTIVE_OVERLAY (env) nếu có — A/B proactive_exit / combo."""
+    base: dict = {}
     if _PROFIT_ACTIVE_PATH.exists():
         try:
-            return json.loads(_PROFIT_ACTIVE_PATH.read_text(encoding="utf-8"))
+            base = json.loads(_PROFIT_ACTIVE_PATH.read_text(encoding="utf-8"))
         except Exception:
-            pass
-    return {}
+            base = {}
+    try:
+        from core.experiments.paths import resolved_profit_overlay_path
+        from core.experiments.merge_config import deep_merge
+
+        op = resolved_profit_overlay_path()
+        if op is not None:
+            over = json.loads(op.read_text(encoding="utf-8"))
+            base = deep_merge(base, over)
+    except Exception:
+        pass
+    return base
 
 
 @dataclass

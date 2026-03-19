@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.portfolio.models import Portfolio, Position, Trade
+from core.portfolio.capital_split import normalize_bucket
 from core.strategies.base import StrategySignal
 from core.execution.binance_user_stream import (
     RECONCILE_INTERVAL,
@@ -310,6 +311,7 @@ class BinanceFuturesExecutor:
         quantity_saved = float(exec_qty_str) if exec_qty_str else exec_qty
 
         # Ghi vào DB ngay sau khi lệnh MARKET thành công → "Lệnh đang mở" luôn đồng bộ với Binance
+        bucket = normalize_bucket(getattr(signal, "capital_bucket", None))
         position = Position(
             portfolio_id=portfolio_id,
             symbol=signal.symbol,
@@ -324,6 +326,8 @@ class BinanceFuturesExecutor:
             is_open=True,
             scale_in_count=0,
             initial_entry_price=avg_price,
+            entry_regime=(getattr(signal, "regime", None) or None),
+            capital_bucket=bucket,
         )
         db.add(position)
         db.flush()
@@ -413,6 +417,7 @@ class BinanceFuturesExecutor:
             fee_usd=0.0,
             pnl_usd=0.0,
             note="".join(trade_note_parts),
+            capital_bucket=bucket,
         )
         db.add(trade)
         db.flush()
@@ -489,6 +494,7 @@ class BinanceFuturesExecutor:
         direction = 1 if position.side == "long" else -1
         gross_pnl = (exit_price - position.entry_price) * exec_qty * direction
         risk_usd = abs(position.entry_price - position.stop_loss) * exec_qty if position.stop_loss else None
+        bpart = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
             position_id=position.id,
@@ -502,6 +508,7 @@ class BinanceFuturesExecutor:
             pnl_usd=round(gross_pnl, 4),
             risk_usd=round(risk_usd, 4) if risk_usd is not None else None,
             note=note or "Partial TP (Binance reduceOnly)",
+            capital_bucket=bpart,
         )
         db.add(trade)
         db.flush()
@@ -556,6 +563,7 @@ class BinanceFuturesExecutor:
         position.scale_in_count = (getattr(position, "scale_in_count", 0) or 0) + 1
         if getattr(position, "initial_entry_price", None) is None:
             position.initial_entry_price = prev_entry
+        bscale = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
             position_id=position.id,
@@ -568,6 +576,7 @@ class BinanceFuturesExecutor:
             fee_usd=0.0,
             pnl_usd=0.0,
             note=f"Scale-in Binance add qty={exec_qty} avg={avg_price}",
+            capital_bucket=bscale,
         )
         db.add(trade)
         db.flush()

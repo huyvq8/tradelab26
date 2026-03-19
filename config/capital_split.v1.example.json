@@ -1,0 +1,18 @@
+{
+  "enabled": false,
+  "core_capital_pct": 0.7,
+  "fast_capital_pct": 0.3,
+  "max_concurrent_fast": 3,
+  "max_daily_loss_fast_pct": 0.025,
+  "max_consecutive_loss_fast": 5,
+  "default_risk_pct_fast": 0.004,
+  "max_notional_usd_fast": 200,
+  "max_hold_minutes_fast": 90,
+  "fast_regimes": ["high_momentum"],
+  "fast_strategy_names": ["breakout_momentum", "liquidity_sweep_reversal"],
+  "fast_strategy_denylist": ["trend_following"],
+  "fast_no_follow_through_enabled": true,
+  "fast_no_follow_through_min_minutes": 10,
+  "fast_no_follow_through_max_mfe_pct": 0.002,
+  "correlation_guard_max_same_sector_fast": 0
+}

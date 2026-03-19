@@ -5,6 +5,7 @@ Chỉ proactive close khi đã vào profit_protection_mode và reversal_exit_sco
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from core.profit.volatility_guard import load_profit_config
@@ -242,6 +243,27 @@ def evaluate_position(
         pnl_usd = (entry - current_price) * quantity
     roi_pct = (pnl_usd / (entry * quantity)) * 100 if (entry * quantity) > 0 else 0.0
     unrealized_r = (pnl_usd / risk_usd) if risk_usd > 0 else 0.0
+
+    # Partial take-profit at +1R (or configured) without waiting for profit-protection mode
+    if cfg.get("partial_1r_enabled", False) and not has_partial_closed and risk_usd > 0:
+        min_1r = float(cfg.get("partial_1r_min_r", 1.0) or 1.0)
+        frac = max(0.0, min(1.0, float(cfg.get("partial_1r_fraction", 0.35) or 0.0)))
+        if frac > 0 and unrealized_r >= min_1r:
+            expl_1r = {
+                "unrealized_r": round(unrealized_r, 2),
+                "message": f"Partial TP at >= {min_1r}R — scale out {frac*100:.0f}%.",
+            }
+            return ProactiveExitResult(
+                action="PARTIAL_TP",
+                reason=expl_1r["message"],
+                reason_code="partial_tp_1r",
+                in_profit_protection_mode=False,
+                reversal_exit_score=None,
+                suggested_sl=None,
+                partial_tp_pct=frac,
+                explanation=expl_1r,
+            )
+
     activation_r = float(cfg.get("profit_protection_activation_r", 1.5))
     activation_roi = float(cfg.get("profit_protection_activation_roi_pct", 40.0))
     in_mode = unrealized_r >= activation_r or roi_pct >= activation_roi
@@ -336,7 +358,21 @@ def evaluate_position(
 
     trailing_mode = (cfg.get("trailing_sl_mode") or "lock_profit_r").strip()
     lock_r = 1.0
-    if trailing_mode == "lock_profit_r" and risk_usd > 0 and quantity > 0:
+    min_hold_min = float(cfg.get("min_hold_minutes_before_move_sl", 0) or 0)
+    age_minutes = 1e9
+    opened_at = getattr(position, "opened_at", None)
+    if opened_at is not None and min_hold_min > 0:
+        try:
+            oa = opened_at
+            if getattr(oa, "tzinfo", None) is not None:
+                oa = oa.replace(tzinfo=None)
+            age_minutes = (datetime.utcnow() - oa).total_seconds() / 60.0
+        except Exception:
+            age_minutes = 1e9
+
+    if trailing_mode == "lock_profit_r" and risk_usd > 0 and quantity > 0 and (
+        min_hold_min <= 0 or age_minutes >= min_hold_min
+    ):
         risk_per_unit = abs(entry - float(sl)) if sl else 0.0
         if risk_per_unit > 0 and side == "long":
             new_sl = entry + lock_r * risk_per_unit

@@ -1,0 +1,26 @@
+{
+  "enabled": false,
+  "disable_in_regime": {
+    "high_momentum": ["mean_reversion"]
+  },
+  "evaluate_order": {
+    "high_momentum": [
+      "breakout_momentum",
+      "trend_following",
+      "liquidity_sweep_reversal",
+      "mean_reversion"
+    ],
+    "balanced": [
+      "mean_reversion",
+      "trend_following",
+      "breakout_momentum",
+      "liquidity_sweep_reversal"
+    ],
+    "risk_off": [
+      "liquidity_sweep_reversal",
+      "mean_reversion",
+      "trend_following",
+      "breakout_momentum"
+    ]
+  }
+}

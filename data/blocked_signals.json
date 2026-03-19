@@ -1,602 +1,1102 @@
 [
   {
-    "ts": "2026-03-19T05:49:57.587344Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:49:57.614926Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:02.197983Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:08.190174Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:02.226321Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:40:15.789605Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:08.206018Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:15.795223Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:17.588846Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:15.820574Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:40:32.523352Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:17.603895Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:32.530018Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:28.781173Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:32.556128Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:40:46.486716Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:28.783378Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:46.513352Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:37.616172Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:40:46.537087Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:41:03.166823Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:37.635737Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:03.170865Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:48.234181Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:03.203612Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:41:15.773445Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:48.253673Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:15.778095Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:57.570994Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:15.820723Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:41:32.042052Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:50:57.572326Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:32.065347Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:07.582251Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:34.159572Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:41:47.861176Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:07.601413Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:47.870133Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:17.561852Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:41:47.901197Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:42:01.546602Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:17.582034Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:01.553435Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:27.594582Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:01.576775Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:42:15.762141Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:27.596831Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:15.767400Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:38.155351Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:15.795850Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:42:32.759477Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:38.175091Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:32.763976Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:47.563441Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:32.794198Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:42:47.988821Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:47.583083Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:48.010751Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:58.244697Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:42:48.030164Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:43:08.734106Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:51:58.245809Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:08.738052Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:08.289274Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:08.771996Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:43:15.759202Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:08.305552Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:15.763789Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:17.577739Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:15.786727Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:43:32.111409Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:17.597930Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:32.131858Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:28.175642Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:33.469448Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:43:46.005885Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:28.198044Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:46.011318Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:37.586682Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:43:46.877765Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:44:02.573755Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:37.588070Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:02.580269Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:47.576454Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:02.608299Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:44:16.513590Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:47.597003Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:16.521949Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:58.168916Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:16.549030Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:44:30.753233Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:52:58.196047Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:30.757123Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:07.583951Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:30.785869Z",
+    "symbol": "WLD",
+    "strategy_name": "mean_reversion",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:44:46.903643Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:07.585981Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:44:46.927196Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:17.572261Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:01.445433Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:17.592663Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:01.449793Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:27.621397Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:19.197383Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:27.637375Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:19.201235Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:37.571977Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:30.765803Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:37.573116Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:30.792675Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:47.580627Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:48.532855Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:47.602767Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:45:48.541158Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:57.579811Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:46:01.382149Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:53:57.600094Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:46:01.390464Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:09.381265Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:46:17.062689Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:09.402732Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:46:17.084613Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:17.585018Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:47:21.835643Z",
+    "symbol": "RIVER",
+    "strategy_name": "breakout_momentum",
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
+  },
+  {
+    "ts": "2026-03-19T12:47:21.841980Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:17.587181Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:47:31.713505Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:28.152955Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:47:31.717140Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:28.173957Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:47:45.633245Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:37.578252Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:47:45.640852Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:37.596946Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:00.675528Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:47.564740Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:00.694744Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:47.566061Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:16.701605Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:57.582960Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:16.706276Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:54:57.603754Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:31.281686Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:08.161016Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:31.300099Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:08.181343Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:45.644877Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:17.564149Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:48:45.648921Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:17.565346Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:00.684894Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:27.578909Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:00.689186Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:27.599051Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:22.687803Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:37.572186Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:22.695832Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:37.589046Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:31.419243Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:47.569276Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:31.440618Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:47.582679Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:46.297058Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:57.554221Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:49:46.301047Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:55:57.555349Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:00.652393Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:08.188959Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:00.674515Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:08.214489Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:16.572560Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:18.175686Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:16.581188Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:18.199020Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:30.666681Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:27.563468Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:30.671006Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:27.565515Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:46.254536Z",
+    "symbol": "RIVER",
     "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "negative_pnl_scale_in_blocked",
+      "side": "long"
+    }
   },
   {
-    "ts": "2026-03-19T05:56:38.228126Z",
-    "symbol": "SIREN",
+    "ts": "2026-03-19T12:50:46.276304Z",
+    "symbol": "RIVER",
     "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:56:38.230207Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:56:48.702323Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:56:48.703693Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:56:57.557397Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:56:57.558544Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:07.571753Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:07.596366Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:18.172747Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:18.194141Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:27.573051Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:27.574370Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:37.562863Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:37.564037Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:47.572084Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:47.593492Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:57.554426Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:57:57.567321Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:58:07.564230Z",
-    "symbol": "SIREN",
-    "strategy_name": "trend_following",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
-  },
-  {
-    "ts": "2026-03-19T05:58:07.565429Z",
-    "symbol": "SIREN",
-    "strategy_name": "breakout_momentum",
-    "reason": "Kill switch v5: daily R = -2030.8 <= -10.0 (dung trade den het ngay)."
+    "reason": "Scale-in rejected: signal_score_too_low",
+    "reason_code": "SCALE_IN_REJECTED",
+    "meta": {
+      "detail": "signal_score_too_low",
+      "side": "long"
+    }
   }
 ]

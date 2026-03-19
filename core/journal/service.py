@@ -57,6 +57,7 @@ class JournalService:
         was_strategy_allowed: bool | None = None,
         short_allowed_flag: bool | None = None,
         hedge_allowed_flag: bool | None = None,
+        capital_bucket: str | None = None,
     ):
         """Create journal entry with optional v4 context, v6 setup/hedge, token intelligence fields."""
         if tp_sl_explanation is None:
@@ -86,6 +87,7 @@ class JournalService:
             was_strategy_allowed=was_strategy_allowed,
             short_allowed_flag=short_allowed_flag,
             hedge_allowed_flag=hedge_allowed_flag,
+            capital_bucket=capital_bucket,
         )
         db.add(entry)
         db.flush()

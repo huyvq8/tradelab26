@@ -22,13 +22,46 @@ from core.orchestration.scale_in_rescan import (
 )
 from core.regime.detector import derive_regime
 from core.strategies.implementations import build_strategy_set
-from core.risk.engine import RiskEngine, effective_risk_capital_usd
+from core.risk.engine import RiskEngine, RiskDecision, effective_risk_capital_usd
 from core.risk.daily_r import sum_daily_realized_r_from_trades
 from core.profit.volatility_guard import check_volatility_guard, load_profit_config
 from core.profit.position_sizer import apply_dynamic_sizing
-from core.profit.strategy_weight_engine import compute_strategy_weights, get_strategy_weight
+from core.profit.strategy_weight_engine import (
+    compute_combo_multipliers,
+    compute_strategy_weights,
+    get_combo_multiplier,
+    get_strategy_weight,
+)
+from core.signals.entry_timing import (
+    evaluate_entry_timing,
+    load_entry_timing_config,
+    record_entry_opened,
+)
+from core.signals.entry_context_gates import (
+    evaluate_entry_context_gates,
+    load_entry_context_gates_config,
+    maybe_log_context_pass,
+)
+from core.profit.signal_level_adjust import adjust_signal_sl_tp
+from core.observability.decision_log import log_decision
 from core.profit.allocation_engine import compute_allocation_mult
-from core.config import settings, get_effective_single_strategy_mode
+from core.config import settings, get_effective_single_strategy_mode, get_effective_max_consecutive_loss_stop
+from core.portfolio.capital_split import (
+    assign_capital_bucket_to_signal,
+    CapitalSplitManager,
+    consecutive_loss_streak_for_bucket,
+    daily_realized_by_bucket,
+    load_capital_split_config,
+    normalize_bucket,
+    open_position_counts,
+)
+from core.portfolio.correlation_guard import correlation_guard_rejects_fast_entry
+from core.orchestration.regime_strategy_filter import (
+    filter_and_order_strategies,
+    load_regime_strategy_config,
+)
+from core.orchestration.exit_guards import fast_no_follow_through_should_close
+from core.risk.quick_sizing import is_likely_below_min_position_usd
 from core.execution import get_execution_backend
 from core.execution.simulator import PaperExecutionSimulator
 from core.journal.service import JournalService
@@ -45,6 +78,165 @@ from core.position.scale_in_queries import last_scale_in_at
 # Cache token features + profile + routing 120s — log chỉ khi refresh (document/request: giảm TOKEN_FEATURES_BUILT mỗi 10s).
 _TOKEN_INTEL_CACHE: dict[str, tuple[float, dict, "TokenProfile", object]] = {}
 _TOKEN_INTEL_TTL = 120.0
+
+
+def _native_signal_log_slice(signal: StrategySignal) -> dict:
+    """Structured fields for decision_log / experiments (comparability)."""
+    return {
+        "setup_quality": getattr(signal, "setup_quality", None),
+        "entry_style": getattr(signal, "entry_style", None),
+        "extension_score": getattr(signal, "extension_score", None),
+        "quality_score": getattr(signal, "quality_score", None),
+        "side": getattr(signal, "side", None),
+        "regime": getattr(signal, "regime", None),
+    }
+
+
+def _apply_entry_edge_pipeline(
+    signal: StrategySignal,
+    *,
+    symbol: str,
+    price_now: float,
+    klines_full: list,
+    combo_mults: dict[str, float],
+    combo_cfg: dict,
+    current_regime: str | None = None,
+    volume_24h: float | None = None,
+) -> tuple[bool, dict | None, float, dict]:
+    """
+    Combo → entry context gates (native + recent + pullback) → entry timing → ATR/cap SL-TP adjust.
+    Returns (ok, rejected_record_or_none, combo_multiplier, entry_timing_cfg).
+    """
+    cm = 1.0
+    if combo_cfg.get("enabled", True):
+        cm = get_combo_multiplier(
+            combo_mults,
+            signal.strategy_name,
+            symbol,
+            current_regime or getattr(signal, "regime", None),
+            side=getattr(signal, "side", None),
+        )
+        if cm <= 0:
+            rec = {
+                "symbol": signal.symbol,
+                "strategy_name": signal.strategy_name,
+                "reason": "Combo strategy+symbol(+regime+side) underperforming (rolling PF/WR); entry blocked.",
+                "reason_code": "COMBO_BLOCKED_EDGE",
+                "meta": {
+                    "combo_multiplier": 0.0,
+                    "regime": current_regime or getattr(signal, "regime", None),
+                    "side": getattr(signal, "side", None),
+                    "native_signal": _native_signal_log_slice(signal),
+                },
+            }
+            log_decision(
+                "entry_rejected",
+                rec["meta"],
+                symbol=symbol,
+                strategy_name=signal.strategy_name,
+                reason_code=rec["reason_code"],
+            )
+            return False, rec, 0.0, {}
+
+    ctx_cfg = load_entry_context_gates_config()
+    ctx_res = evaluate_entry_context_gates(
+        signal,
+        symbol=symbol,
+        strategy_name=(signal.strategy_name or "").strip(),
+        side=signal.side or "long",
+        price_now=float(price_now),
+        klines=klines_full or [],
+        volume_24h=volume_24h,
+        cfg=ctx_cfg,
+    )
+    if not ctx_res.ok:
+        ctx_payload = {**ctx_res.details, "native_signal": _native_signal_log_slice(signal)}
+        rec = {
+            "symbol": signal.symbol,
+            "strategy_name": signal.strategy_name,
+            "reason": ctx_res.message,
+            "reason_code": ctx_res.reason_code,
+            "meta": ctx_payload,
+        }
+        log_decision(
+            "entry_rejected",
+            ctx_payload,
+            symbol=symbol,
+            strategy_name=signal.strategy_name,
+            reason_code=ctx_res.reason_code,
+        )
+        return False, rec, cm, {}
+    maybe_log_context_pass(
+        log_decision,
+        symbol=symbol,
+        strategy_name=(signal.strategy_name or "").strip(),
+        details=ctx_res.details,
+        cfg=ctx_cfg,
+    )
+
+    eti_cfg = load_entry_timing_config()
+    et = evaluate_entry_timing(
+        strategy_name=signal.strategy_name,
+        symbol=symbol,
+        side=signal.side or "long",
+        price_now=price_now,
+        klines_1h=klines_full,
+        cfg=eti_cfg,
+    )
+    if not et.ok:
+        payload = {**et.details, "native_signal": _native_signal_log_slice(signal)}
+        rec = {
+            "symbol": signal.symbol,
+            "strategy_name": signal.strategy_name,
+            "reason": et.message,
+            "reason_code": et.reason_code,
+            "meta": payload,
+        }
+        log_decision(
+            "entry_rejected",
+            payload,
+            symbol=symbol,
+            strategy_name=signal.strategy_name,
+            reason_code=et.reason_code,
+        )
+        return False, rec, cm, eti_cfg
+
+    sl_adj = eti_cfg.get("signal_levels") or {}
+    if getattr(signal, "levels_from_structure", False):
+        adj_meta = {
+            "adjusted": False,
+            "skipped": "levels_from_structure",
+            "entry_zone": [
+                getattr(signal, "entry_zone_low", None),
+                getattr(signal, "entry_zone_high", None),
+            ],
+            "take_profit_extended": getattr(signal, "take_profit_extended", None),
+            "atr_estimate_1h": getattr(signal, "atr_estimate_1h", None),
+            "structure_meta": getattr(signal, "structure_meta", None),
+            "native_signal": _native_signal_log_slice(signal),
+        }
+        log_decision(
+            "signal_levels_passthrough",
+            adj_meta,
+            symbol=symbol,
+            strategy_name=signal.strategy_name,
+            reason_code="STRUCTURAL_LEVELS",
+        )
+    else:
+        adj_meta = adjust_signal_sl_tp(signal, klines_full, sl_adj)
+        if adj_meta.get("adjusted"):
+            signal.rationale = (
+                (signal.rationale or "")
+                + f" | SL/TP ATR+caps: SL~{adj_meta.get('sl_pct_after')}%, TP~{adj_meta.get('tp_pct_after')}%."
+            )
+            log_decision(
+                "signal_levels_adjusted",
+                adj_meta,
+                symbol=symbol,
+                strategy_name=signal.strategy_name,
+                reason_code="SIGNAL_LEVELS_ATR_CAP",
+            )
+    return True, None, cm, eti_cfg
 
 
 def _log_scale_in_rejected(symbol: str, side: str, reason: str, position: Position, si_flat: dict) -> None:
@@ -91,6 +283,79 @@ class SimulationCycle:
         self.risk = RiskEngine()
         self.execution = get_execution_backend()
         self.journal = JournalService()
+
+    def _risk_assess_entry(
+        self,
+        signal: StrategySignal,
+        available_cash: float,
+        *,
+        daily_realized: float,
+        daily_realized_r: float | None,
+        risk_capital_usd: float,
+        open_positions_total: int,
+        open_core: int,
+        open_fast: int,
+        daily_core: float,
+        daily_fast: float,
+        consecutive_loss_core: int,
+        consecutive_loss_fast: int,
+        consecutive_loss_all: int,
+        override_risk_pct: float | None,
+        cs_mgr: CapitalSplitManager,
+    ) -> RiskDecision:
+        """Risk cho mở lệnh mới — hỗ trợ capital split (core/fast) khi cs_mgr.enabled."""
+        bucket = normalize_bucket(getattr(signal, "capital_bucket", None))
+        if not cs_mgr.enabled:
+            return self.risk.assess(
+                signal,
+                available_cash,
+                open_positions_total,
+                daily_realized,
+                daily_realized_r=daily_realized_r,
+                consecutive_loss_count=consecutive_loss_all,
+                override_risk_pct=override_risk_pct,
+                capital_usd_for_risk=risk_capital_usd,
+            )
+        if bucket == "fast":
+            cap_nf = cs_mgr.max_notional_usd_fast()
+            return self.risk.assess(
+                signal,
+                available_cash,
+                open_positions_total,
+                daily_realized,
+                daily_realized_r=daily_realized_r,
+                consecutive_loss_count=consecutive_loss_fast,
+                override_risk_pct=override_risk_pct,
+                capital_usd_for_risk=risk_capital_usd,
+                capital_scope="fast",
+                open_positions_in_scope=open_fast,
+                daily_realized_pnl_in_scope=daily_fast,
+                risk_capital_for_scope=cs_mgr.fast_capital_usd(),
+                max_concurrent_in_scope=cs_mgr.max_concurrent_fast(),
+                max_daily_loss_pct_in_scope=cs_mgr.max_daily_loss_fast_pct(),
+                consecutive_loss_in_scope=consecutive_loss_fast,
+                max_consecutive_loss_for_scope=cs_mgr.max_consecutive_loss_fast(),
+                max_position_usd_cap=cap_nf if cap_nf > 0 else None,
+            )
+        return self.risk.assess(
+            signal,
+            available_cash,
+            open_positions_total,
+            daily_realized,
+            daily_realized_r=daily_realized_r,
+            consecutive_loss_count=consecutive_loss_core,
+            override_risk_pct=override_risk_pct,
+            capital_usd_for_risk=risk_capital_usd,
+            capital_scope="core",
+            open_positions_in_scope=open_core,
+            daily_realized_pnl_in_scope=daily_core,
+            risk_capital_for_scope=cs_mgr.core_capital_usd(),
+            max_concurrent_in_scope=settings.max_concurrent_trades,
+            max_daily_loss_pct_in_scope=settings.max_daily_loss_pct,
+            consecutive_loss_in_scope=consecutive_loss_core,
+            max_consecutive_loss_for_scope=get_effective_max_consecutive_loss_stop(),
+            max_position_usd_cap=None,
+        )
 
     def run(
         self,
@@ -144,18 +409,20 @@ class SimulationCycle:
         closed_today = list(db.scalars(closed_today_q))
         daily_realized = round(sum(t.pnl_usd for t in closed_today), 2)
         daily_realized_r = sum_daily_realized_r_from_trades(closed_today)
-        consecutive_loss_count = 0
         last_closed = list(db.scalars(
             select(Trade).where(
                 Trade.portfolio_id == portfolio.id,
                 Trade.action == "close",
             ).order_by(Trade.created_at.desc()).limit(50)
         ))
-        for t in last_closed:
-            if (t.pnl_usd or 0) < 0:
-                consecutive_loss_count += 1
-            else:
-                break
+        consecutive_loss_core = consecutive_loss_streak_for_bucket(last_closed, "core")
+        consecutive_loss_fast = consecutive_loss_streak_for_bucket(last_closed, "fast")
+        consecutive_loss_all = consecutive_loss_streak_for_bucket(last_closed, None)
+        cs_cfg = load_capital_split_config()
+        cs_mgr = CapitalSplitManager(cs_cfg, risk_capital_usd)
+        regime_rs_cfg = load_regime_strategy_config()
+        open_core, open_fast = open_position_counts(open_positions)
+        daily_realized_core, daily_realized_fast = daily_realized_by_bucket(closed_today)
         single_strategy = get_effective_single_strategy_mode()
         strategies_to_use = (
             [s for s in self.strategies if s.name == single_strategy]
@@ -180,6 +447,25 @@ class SimulationCycle:
             for p in open_positions
         ]
         alloc_cfg = profit_cfg_cycle.get("allocation") or {}
+        combo_cfg = profit_cfg_cycle.get("combo_performance") or {}
+        combo_mults: dict[str, float] = {}
+        if combo_cfg.get("enabled", True):
+            min_sr = combo_cfg.get("min_sample_regime")
+            min_sq = combo_cfg.get("min_sample_quad")
+            combo_mults = compute_combo_multipliers(
+                db,
+                portfolio_id=portfolio.id,
+                lookback_days=int(combo_cfg.get("lookback_days", 60)),
+                min_sample=int(combo_cfg.get("min_sample", 15)),
+                min_sample_regime=int(min_sr) if min_sr is not None else None,
+                include_regime_in_key=bool(combo_cfg.get("include_regime_in_key", True)),
+                include_side_in_key=bool(combo_cfg.get("include_side_in_key", False)),
+                min_sample_quad=int(min_sq) if min_sq is not None else None,
+                block_pf_below=float(combo_cfg.get("block_pf_below", 0.92)),
+                block_wr_below=float(combo_cfg.get("block_wr_below", 0.36)),
+                soft_pf_below=float(combo_cfg.get("soft_pf_below", 1.0)),
+                soft_mult=float(combo_cfg.get("soft_mult", 0.5)),
+            )
 
         for symbol, quote in quotes.items():
             opened_this_symbol = False
@@ -204,7 +490,11 @@ class SimulationCycle:
                 cached = _TOKEN_INTEL_CACHE.get(symbol)
                 if cached is not None and cached[0] >= now_mono:
                     _, features, profile, route = cached
-                    strategies_for_symbol = [s for s in strategies_to_use if s.name in route.allowed_strategies]
+                    strategies_for_symbol = filter_and_order_strategies(
+                        [s for s in strategies_to_use if s.name in route.allowed_strategies],
+                        regime,
+                        regime_rs_cfg,
+                    )
                 else:
                     klines_ti = klines_full
                     features = build_token_features(symbol, quote, klines_ti, class_cfg)
@@ -215,9 +505,13 @@ class SimulationCycle:
                         "TOKEN_SLOW_FEATURES_REFRESHED symbol=%s reason=cache_expiry token_type=%s allowed=%s blocked=%s",
                         symbol, profile.token_type, route.allowed_strategies, route.blocked_strategies,
                     )
-                    strategies_for_symbol = [s for s in strategies_to_use if s.name in route.allowed_strategies]
+                    strategies_for_symbol = filter_and_order_strategies(
+                        [s for s in strategies_to_use if s.name in route.allowed_strategies],
+                        regime,
+                        regime_rs_cfg,
+                    )
             else:
-                strategies_for_symbol = strategies_to_use
+                strategies_for_symbol = filter_and_order_strategies(strategies_to_use, regime, regime_rs_cfg)
             for strategy in strategies_for_symbol:
                 evaluated += 1
                 signal = strategy.evaluate(
@@ -226,10 +520,11 @@ class SimulationCycle:
                     quote.percent_change_24h,
                     quote.volume_24h,
                     regime,
+                    klines_1h=klines_full or None,
                 )
                 if signal is None:
                     continue
-                logging.getLogger(__name__).info(
+                logging.getLogger(__name__).debug(
                     "SIGNAL_CANDIDATE symbol=%s strategy=%s side=%s entry=%s price_now=%s",
                     symbol, signal.strategy_name, signal.side, signal.entry_price, quote.price,
                 )
@@ -248,6 +543,34 @@ class SimulationCycle:
                                 continue
                     except Exception:
                         pass
+                ok_edge, edge_reject, entry_combo_mult, eti_cfg_used = _apply_entry_edge_pipeline(
+                    signal,
+                    symbol=symbol,
+                    price_now=quote.price,
+                    klines_full=klines_full,
+                    combo_mults=combo_mults,
+                    combo_cfg=combo_cfg,
+                    current_regime=regime,
+                    volume_24h=float(getattr(quote, "volume_24h", 0) or 0) or None,
+                )
+                if not ok_edge:
+                    rejected_signals.append(edge_reject)
+                    continue
+                assign_capital_bucket_to_signal(signal, regime, cs_cfg)
+                corr_rej, corr_msg = correlation_guard_rejects_fast_entry(
+                    open_positions, symbol, cs_cfg,
+                )
+                if corr_rej:
+                    logging.getLogger(__name__).info(
+                        "REJECTED_SIGNAL symbol=%s strategy=%s reason=%s",
+                        symbol, signal.strategy_name, corr_msg,
+                    )
+                    rejected_signals.append({
+                        "symbol": symbol,
+                        "strategy_name": signal.strategy_name,
+                        "reason": corr_msg,
+                    })
+                    continue
                 # Số lệnh đang mở cho symbol này
                 opens_for_symbol = [p for p in open_positions if p.symbol == symbol]
                 count_open_for_symbol = len(opens_for_symbol)
@@ -281,6 +604,18 @@ class SimulationCycle:
                                 )
                         continue
                     _log_scale_in_rejected(symbol, signal.side, decision.reason, position, si_flat)
+                    try:
+                        from core.rejected_signals_log import log_rejected
+
+                        log_rejected(
+                            symbol,
+                            (signal.strategy_name or "").strip() or "?",
+                            f"Scale-in rejected: {decision.reason}",
+                            reason_code="SCALE_IN_REJECTED",
+                            meta={"detail": decision.reason, "side": signal.side},
+                        )
+                    except Exception:
+                        pass
                     skipped_already_open.append(f"{symbol} ({signal.strategy_name}) — scale-in: {decision.reason}")
                     continue
                 if count_open_for_symbol >= max_per_symbol:
@@ -323,6 +658,7 @@ class SimulationCycle:
                     "take_profit": signal.take_profit,
                     "rationale": signal.rationale,
                     "confidence": signal.confidence,
+                    "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
                 })
                 # Phase 1 v6: Volatility guard — block hoặc giảm size khi ATR/volatility cao
                 profit_cfg = load_profit_config()
@@ -353,20 +689,57 @@ class SimulationCycle:
                         override_risk_pct = float(profit_cfg["sizing"]["base_risk_pct"])
                     except (TypeError, ValueError):
                         pass
+                if cs_mgr.enabled and normalize_bucket(getattr(signal, "capital_bucket", None)) == "fast":
+                    override_risk_pct = cs_mgr.default_risk_pct_fast()
                 if profile and profile.risk_profile and "risk_per_trade_pct" in profile.risk_profile:
                     try:
                         override_risk_pct = float(profile.risk_profile["risk_per_trade_pct"]) / 100.0
                     except (TypeError, ValueError):
                         pass
-                decision = self.risk.assess(
+                if cs_mgr.enabled:
+                    if normalize_bucket(getattr(signal, "capital_bucket", None)) == "fast":
+                        cap_quick = cs_mgr.fast_capital_usd()
+                    else:
+                        cap_quick = cs_mgr.core_capital_usd()
+                else:
+                    cap_quick = risk_capital_usd
+                rp_quick = (
+                    override_risk_pct
+                    if override_risk_pct is not None and 0 < float(override_risk_pct) < 1
+                    else float(getattr(settings, "default_risk_pct", 0.01) or 0.01)
+                )
+                if is_likely_below_min_position_usd(
+                    signal,
+                    available_cash=available_cash,
+                    capital_usd_for_risk=cap_quick,
+                    risk_pct=rp_quick,
+                ):
+                    logging.getLogger(__name__).debug(
+                        "REJECTED_SIGNAL symbol=%s strategy=%s reason=pre_size_below_min cap_quick=%s",
+                        symbol, signal.strategy_name, round(cap_quick, 2),
+                    )
+                    rejected_signals.append({
+                        "symbol": symbol,
+                        "strategy_name": signal.strategy_name,
+                        "reason": "Pre-check: estimated position size below minimum.",
+                    })
+                    continue
+                decision = self._risk_assess_entry(
                     signal,
                     available_cash,
-                    len(open_positions),
-                    daily_realized,
+                    daily_realized=daily_realized,
                     daily_realized_r=daily_realized_r,
-                    consecutive_loss_count=consecutive_loss_count,
+                    risk_capital_usd=risk_capital_usd,
+                    open_positions_total=len(open_positions),
+                    open_core=open_core,
+                    open_fast=open_fast,
+                    daily_core=daily_realized_core,
+                    daily_fast=daily_realized_fast,
+                    consecutive_loss_core=consecutive_loss_core,
+                    consecutive_loss_fast=consecutive_loss_fast,
+                    consecutive_loss_all=consecutive_loss_all,
                     override_risk_pct=override_risk_pct,
-                    capital_usd_for_risk=risk_capital_usd,
+                    cs_mgr=cs_mgr,
                 )
                 if not decision.approved:
                     logging.getLogger(__name__).info(
@@ -417,6 +790,8 @@ class SimulationCycle:
                     )
                 else:
                     final_size_usd = size_after_vol
+                if entry_combo_mult < 1.0:
+                    final_size_usd = round(float(final_size_usd) * float(entry_combo_mult), 2)
                 if final_size_usd < 25:
                     logging.getLogger(__name__).info(
                         "REJECTED_SIGNAL symbol=%s strategy=%s reason=Position size too small after dynamic sizing. final_size_usd=%s",
@@ -426,12 +801,14 @@ class SimulationCycle:
                         "symbol": signal.symbol,
                         "strategy_name": signal.strategy_name,
                         "reason": "Position size too small after dynamic sizing.",
+                        "reason_code": "SIZE_TOO_SMALL_POST_SIZING",
+                        "meta": {"combo_mult": entry_combo_mult},
                     })
                     continue
                 final_size_usd = min(final_size_usd, available_cash)
                 logging.getLogger(__name__).info(
-                    "OPENING_POSITION symbol=%s strategy=%s side=%s size_usd=%s",
-                    signal.symbol, signal.strategy_name, signal.side, round(final_size_usd, 2),
+                    "OPENING_POSITION symbol=%s strategy=%s side=%s size_usd=%s combo_mult=%s",
+                    signal.symbol, signal.strategy_name, signal.side, round(final_size_usd, 2), entry_combo_mult,
                 )
                 position = self.execution.open_position(
                     db, portfolio.id, signal, final_size_usd
@@ -468,6 +845,24 @@ class SimulationCycle:
                     was_strategy_allowed=True if route else None,
                     short_allowed_flag=(profile.shortability != "disabled") if profile else None,
                     hedge_allowed_flag=(profile.hedge_policy != "disabled") if profile else None,
+                    capital_bucket=normalize_bucket(getattr(signal, "capital_bucket", None)),
+                )
+                try:
+                    record_entry_opened(symbol, eti_cfg_used)
+                except Exception:
+                    pass
+                log_decision(
+                    "entry_opened",
+                    {
+                        "size_usd": round(final_size_usd, 2),
+                        "combo_mult": entry_combo_mult,
+                        "stop_loss": signal.stop_loss,
+                        "take_profit": signal.take_profit,
+                        "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
+                    },
+                    symbol=symbol,
+                    strategy_name=signal.strategy_name,
+                    reason_code="ENTRY_OPENED",
                 )
                 opened += 1
                 opened_positions.append({
@@ -478,7 +873,14 @@ class SimulationCycle:
                     "size_usd": round(final_size_usd, 2),
                     "stop_loss": signal.stop_loss,
                     "take_profit": signal.take_profit,
+                    "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
                 })
+                if normalize_bucket(getattr(signal, "capital_bucket", None)) == "fast":
+                    open_fast += 1
+                else:
+                    open_core += 1
+                open_positions.append(position)
+                open_positions_for_allocation.append({"strategy_name": signal.strategy_name})
                 opened_this_symbol = True
                 break
             # Smart Short Engine (v6): one short candidate per symbol when no long opened; respect profile.shortability
@@ -527,6 +929,34 @@ class SimulationCycle:
                                     except Exception:
                                         pass
                                 if signal is not None:
+                                    ok_edge_s, edge_reject_s, entry_combo_mult_s, eti_cfg_short = _apply_entry_edge_pipeline(
+                                        signal,
+                                        symbol=symbol,
+                                        price_now=quote.price,
+                                        klines_full=klines_1h_short,
+                                        combo_mults=combo_mults,
+                                        combo_cfg=combo_cfg,
+                                        current_regime=regime,
+                                        volume_24h=float(getattr(quote, "volume_24h", 0) or 0) or None,
+                                    )
+                                    if not ok_edge_s:
+                                        rejected_signals.append(edge_reject_s)
+                                        continue
+                                    assign_capital_bucket_to_signal(signal, regime, cs_cfg)
+                                    corr_rej_s, corr_msg_s = correlation_guard_rejects_fast_entry(
+                                        open_positions, symbol, cs_cfg,
+                                    )
+                                    if corr_rej_s:
+                                        logging.getLogger(__name__).info(
+                                            "REJECTED_SIGNAL symbol=%s strategy=%s reason=%s",
+                                            symbol, signal.strategy_name, corr_msg_s,
+                                        )
+                                        rejected_signals.append({
+                                            "symbol": symbol,
+                                            "strategy_name": signal.strategy_name,
+                                            "reason": corr_msg_s,
+                                        })
+                                        continue
                                     opens_for_symbol = [p for p in open_positions if p.symbol == symbol]
                                     existing_same_side_short = [p for p in opens_for_symbol if (p.side or "").lower() == "short"]
                                     if len(existing_same_side_short) == 1 and is_binance and scale_in_enabled:
@@ -554,6 +984,18 @@ class SimulationCycle:
                                                     )
                                             continue
                                         _log_scale_in_rejected(symbol, "short", decision_short.reason, position, si_flat_short)
+                                        try:
+                                            from core.rejected_signals_log import log_rejected
+
+                                            log_rejected(
+                                                symbol,
+                                                (signal.strategy_name or "").strip() or "?",
+                                                f"Scale-in rejected (short): {decision_short.reason}",
+                                                reason_code="SCALE_IN_REJECTED",
+                                                meta={"detail": decision_short.reason, "side": "short"},
+                                            )
+                                        except Exception:
+                                            pass
                                         skipped_already_open.append(f"{symbol} ({signal.strategy_name}) — scale-in: {decision_short.reason}")
                                         continue
                                     if len(opens_for_symbol) < max_per_symbol:
@@ -566,6 +1008,7 @@ class SimulationCycle:
                                             "take_profit": signal.take_profit,
                                             "rationale": signal.rationale,
                                             "confidence": signal.confidence,
+                                            "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
                                         })
                                         profit_cfg = load_profit_config()
                                         vol_result = check_volatility_guard(symbol, quote, klines_1h_short, config=profit_cfg)
@@ -581,17 +1024,57 @@ class SimulationCycle:
                                                     override_risk_pct = float(profit_cfg["sizing"]["base_risk_pct"])
                                                 except (TypeError, ValueError):
                                                     pass
+                                            if cs_mgr.enabled and normalize_bucket(getattr(signal, "capital_bucket", None)) == "fast":
+                                                override_risk_pct = cs_mgr.default_risk_pct_fast()
                                             if profile and profile.risk_profile and "risk_per_trade_pct" in profile.risk_profile:
                                                 try:
                                                     override_risk_pct = float(profile.risk_profile["risk_per_trade_pct"]) / 100.0
                                                 except (TypeError, ValueError):
                                                     pass
-                                            decision = self.risk.assess(
-                                                signal, available_cash, len(open_positions),
-                                                daily_realized, daily_realized_r=daily_realized_r,
-                                                consecutive_loss_count=consecutive_loss_count,
+                                            if cs_mgr.enabled:
+                                                if normalize_bucket(getattr(signal, "capital_bucket", None)) == "fast":
+                                                    cap_quick_s = cs_mgr.fast_capital_usd()
+                                                else:
+                                                    cap_quick_s = cs_mgr.core_capital_usd()
+                                            else:
+                                                cap_quick_s = risk_capital_usd
+                                            rp_quick_s = (
+                                                override_risk_pct
+                                                if override_risk_pct is not None and 0 < float(override_risk_pct) < 1
+                                                else float(getattr(settings, "default_risk_pct", 0.01) or 0.01)
+                                            )
+                                            if is_likely_below_min_position_usd(
+                                                signal,
+                                                available_cash=available_cash,
+                                                capital_usd_for_risk=cap_quick_s,
+                                                risk_pct=rp_quick_s,
+                                            ):
+                                                logging.getLogger(__name__).debug(
+                                                    "REJECTED_SIGNAL symbol=%s strategy=%s reason=pre_size_below_min (short)",
+                                                    symbol, signal.strategy_name,
+                                                )
+                                                rejected_signals.append({
+                                                    "symbol": symbol,
+                                                    "strategy_name": signal.strategy_name,
+                                                    "reason": "Pre-check: estimated position size below minimum.",
+                                                })
+                                                continue
+                                            decision = self._risk_assess_entry(
+                                                signal,
+                                                available_cash,
+                                                daily_realized=daily_realized,
+                                                daily_realized_r=daily_realized_r,
+                                                risk_capital_usd=risk_capital_usd,
+                                                open_positions_total=len(open_positions),
+                                                open_core=open_core,
+                                                open_fast=open_fast,
+                                                daily_core=daily_realized_core,
+                                                daily_fast=daily_realized_fast,
+                                                consecutive_loss_core=consecutive_loss_core,
+                                                consecutive_loss_fast=consecutive_loss_fast,
+                                                consecutive_loss_all=consecutive_loss_all,
                                                 override_risk_pct=override_risk_pct,
-                                                capital_usd_for_risk=risk_capital_usd,
+                                                cs_mgr=cs_mgr,
                                             )
                                             if decision.approved:
                                                 size_after_vol = decision.size_usd
@@ -616,6 +1099,8 @@ class SimulationCycle:
                                                         )
                                                     else:
                                                         final_size_usd = size_after_vol
+                                                    if entry_combo_mult_s < 1.0:
+                                                        final_size_usd = round(float(final_size_usd) * float(entry_combo_mult_s), 2)
                                                     if final_size_usd >= 25:
                                                         final_size_usd = min(final_size_usd, available_cash)
                                                         position = self.execution.open_position(db, portfolio.id, signal, final_size_usd)
@@ -651,6 +1136,23 @@ class SimulationCycle:
                                                             was_strategy_allowed=True if profile else None,
                                                             short_allowed_flag=(profile.shortability != "disabled") if profile else None,
                                                             hedge_allowed_flag=(profile.hedge_policy != "disabled") if profile else None,
+                                                            capital_bucket=normalize_bucket(getattr(signal, "capital_bucket", None)),
+                                                        )
+                                                        try:
+                                                            record_entry_opened(symbol, eti_cfg_short)
+                                                        except Exception:
+                                                            pass
+                                                        log_decision(
+                                                            "entry_opened",
+                                                            {
+                                                                "size_usd": round(final_size_usd, 2),
+                                                                "combo_mult": entry_combo_mult_s,
+                                                                "setup": short_sig.setup_type,
+                                                                "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
+                                                            },
+                                                            symbol=symbol,
+                                                            strategy_name=signal.strategy_name,
+                                                            reason_code="ENTRY_OPENED_SHORT",
                                                         )
                                                         logging.getLogger(__name__).info("SHORT_SIGNAL_FOUND symbol=%s setup=%s", symbol, short_sig.setup_type)
                                                         opened += 1
@@ -662,7 +1164,12 @@ class SimulationCycle:
                                                             "size_usd": round(final_size_usd, 2),
                                                             "stop_loss": signal.stop_loss,
                                                             "take_profit": signal.take_profit,
+                                                            "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
                                                         })
+                                                        if normalize_bucket(getattr(signal, "capital_bucket", None)) == "fast":
+                                                            open_fast += 1
+                                                        else:
+                                                            open_core += 1
                                                         open_positions.append(position)
                                                         open_positions_for_allocation.append({"strategy_name": signal.strategy_name})
                                         else:
@@ -685,6 +1192,11 @@ class SimulationCycle:
             "daily_realized_usd": daily_realized,
             "daily_realized_r": round(float(daily_realized_r), 4),
             "risk_capital_usd": round(float(risk_capital_usd), 2),
+            "capital_split_enabled": bool(cs_mgr.enabled),
+            "daily_realized_core_usd": daily_realized_core,
+            "daily_realized_fast_usd": daily_realized_fast,
+            "open_core_positions": open_core,
+            "open_fast_positions": open_fast,
         }
 
     def sync_positions_from_binance(self, db: Session, portfolio_name: str) -> dict:
@@ -791,6 +1303,7 @@ class SimulationCycle:
                 pnl_usd=round(pnl_usd, 4),
                 risk_usd=round(risk_usd, 4) if risk_usd is not None else None,
                 note="Đồng bộ từ Binance: không còn vị thế trên sàn (TP/SL/Trailing đã kích hoạt)",
+                capital_bucket=normalize_bucket(getattr(pos, "capital_bucket", None)),
             )
             db.add(close_trade)
             # Đồng bộ từ Binance: tiền thật ở trên sàn, không cập nhật portfolio.cash_usd (khi mở Binance ta cũng không trừ cash). Cộng notional vào cash sẽ gây số dư cộng dồn sai.
@@ -882,6 +1395,8 @@ class SimulationCycle:
         updated_symbol_side: set[tuple[str, str]] = set()
 
         _class_cfg_review = load_classification_config()
+        cs_rev = load_capital_split_config()
+        max_min_fast = int(cs_rev.get("max_hold_minutes_fast", 0) or 0) if cs_rev.get("enabled") else 0
         for pos in open_positions:
             if pos.symbol not in quotes:
                 actions.append({"symbol": pos.symbol, "side": pos.side, "action": "HOLD", "reason": "không có giá"})
@@ -908,7 +1423,25 @@ class SimulationCycle:
                     pass
             # 1) Có cần đóng chủ động không?
             note_close = ""
-            if max_hours_pos > 0 and age_hours >= max_hours_pos:
+            if cs_rev.get("enabled") and normalize_bucket(getattr(pos, "capital_bucket", None)) == "fast":
+                try:
+                    k_nft = get_klines_1h(pos.symbol, limit=48)
+                except Exception:
+                    k_nft = []
+                do_nft, nft_reason = fast_no_follow_through_should_close(
+                    pos, price_now=price_now, klines=k_nft, cs_cfg=cs_rev, now=now,
+                )
+                if do_nft:
+                    note_close = nft_reason
+            if (
+                not note_close
+                and max_min_fast > 0
+                and normalize_bucket(getattr(pos, "capital_bucket", None)) == "fast"
+            ):
+                age_min = (now - pos.opened_at).total_seconds() / 60.0 if getattr(pos, "opened_at", None) else 0
+                if age_min >= max_min_fast:
+                    note_close = f"fast capital time-stop ({age_min:.0f}m >= {max_min_fast}m)"
+            if not note_close and max_hours_pos > 0 and age_hours >= max_hours_pos:
                 note_close = f"đã giữ {age_hours:.1f}h (tối đa {max_hours_pos}h)"
             if not note_close and close_if_risk_off:
                 regime = derive_regime(
@@ -1189,7 +1722,9 @@ class SimulationCycle:
             return {"closed": 0, "reason": "no_open_positions"}
         max_hours = max(0.0, float(getattr(settings, "max_hold_hours", 0) or 0))
         close_if_risk_off = bool(getattr(settings, "proactive_close_if_risk_off", False))
-        if max_hours <= 0 and not close_if_risk_off:
+        cs_pc = load_capital_split_config()
+        max_min_fast_pc = int(cs_pc.get("max_hold_minutes_fast", 0) or 0) if cs_pc.get("enabled") else 0
+        if max_hours <= 0 and not close_if_risk_off and max_min_fast_pc <= 0:
             return {"closed": 0, "reason": "proactive_close_disabled"}
         symbols = list({p.symbol for p in open_positions})
         quotes = get_quotes_with_fallback(symbols)
@@ -1203,7 +1738,12 @@ class SimulationCycle:
             price_now = quotes[pos.symbol].price
             exit_price = price_now
             note = ""
-            if max_hours > 0 and getattr(pos, "opened_at", None):
+            if max_min_fast_pc > 0 and normalize_bucket(getattr(pos, "capital_bucket", None)) == "fast":
+                if getattr(pos, "opened_at", None):
+                    age_min = (now - pos.opened_at).total_seconds() / 60.0
+                    if age_min >= max_min_fast_pc:
+                        note = f"Đóng chủ động: fast time-stop ({age_min:.0f}m >= {max_min_fast_pc}m)"
+            if not note and max_hours > 0 and getattr(pos, "opened_at", None):
                 age_hours = (now - pos.opened_at).total_seconds() / 3600.0
                 if age_hours >= max_hours:
                     note = f"Đóng chủ động: đã giữ {age_hours:.1f}h (tối đa {max_hours}h)"

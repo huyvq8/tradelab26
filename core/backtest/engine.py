@@ -11,6 +11,25 @@ from core.strategies.base import StrategySignal
 from core.strategies.implementations import build_strategy_set, build_strategy_set_from_config
 
 
+def _window_klines(data: pd.DataFrame, i: int, n: int = 25) -> list:
+    out = []
+    start = max(0, i - n + 1)
+    for j in range(start, i + 1):
+        r = data.iloc[j]
+
+        class K:
+            pass
+
+        k = K()
+        k.open = float(r["open"])
+        k.high = float(r["high"])
+        k.low = float(r["low"])
+        k.close = float(r["close"])
+        k.volume = float(r["volume"])
+        out.append(k)
+    return out
+
+
 @dataclass
 class BacktestTrade:
     symbol: str
@@ -137,7 +156,7 @@ def run_backtest(
                 if regime in disabled_regimes.get(strategy.name, []):
                     continue
                 signal = strategy.evaluate(
-                    symbol, close, chg, volume, regime
+                    symbol, close, chg, volume, regime, klines_1h=_window_klines(data, i)
                 )
                 if signal is None:
                     continue

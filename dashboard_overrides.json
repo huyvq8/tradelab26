@@ -2,5 +2,5 @@
   "enable_live_binance_futures": true,
   "binance_futures_testnet": false,
   "kill_switch_enabled": true,
-  "kill_switch_r_threshold": 10.0
+  "kill_switch_r_threshold": 20.0
 }

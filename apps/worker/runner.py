@@ -30,9 +30,21 @@ from core.signals.analysis import build_entry_analysis_from_dict, format_telegra
 
 Base.metadata.create_all(bind=engine)
 try:
-    from core.db import ensure_journal_tp_sl_explanation_column, ensure_positions_hedge_column, ensure_journal_setup_hedge_columns
+    from core.db import (
+        ensure_journal_tp_sl_explanation_column,
+        ensure_positions_hedge_column,
+        ensure_positions_entry_regime_column,
+        ensure_positions_capital_bucket_column,
+        ensure_trades_capital_bucket_column,
+        ensure_journal_capital_bucket_column,
+        ensure_journal_setup_hedge_columns,
+    )
     ensure_journal_tp_sl_explanation_column()
     ensure_positions_hedge_column()
+    ensure_positions_entry_regime_column()
+    ensure_positions_capital_bucket_column()
+    ensure_trades_capital_bucket_column()
+    ensure_journal_capital_bucket_column()
     ensure_journal_setup_hedge_columns()
 except Exception:
     pass
@@ -170,7 +182,13 @@ def run_cycle_job():
             try:
                 from core.rejected_signals_log import log_rejected
                 for r in rejected:
-                    log_rejected(r.get("symbol", ""), r.get("strategy_name", ""), r.get("reason", ""))
+                    log_rejected(
+                        r.get("symbol", ""),
+                        r.get("strategy_name", ""),
+                        r.get("reason", ""),
+                        reason_code=r.get("reason_code"),
+                        meta=r.get("meta"),
+                    )
             except Exception:
                 pass
             for r in rejected:

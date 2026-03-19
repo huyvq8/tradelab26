@@ -38,6 +38,10 @@ class Position(Base):
     # Smart Scale-In (document/budget): so lan da add vao vi the; entry lan dau de so sanh rule gia.
     scale_in_count: Mapped[int] = mapped_column(Integer, default=0)
     initial_entry_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Regime tại lúc mở lệnh (từ signal.regime) — dùng combo learning strategy+symbol+regime
+    entry_regime: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Capital split: core (mặc định) vs fast — risk/journal theo bucket (document/capital_split_fast_trading_module.md)
+    capital_bucket: Mapped[str] = mapped_column(String(16), default="core", index=True)
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="positions")
 
@@ -57,6 +61,7 @@ class Trade(Base):
     fee_usd: Mapped[float] = mapped_column(Float, default=0.0)
     pnl_usd: Mapped[float] = mapped_column(Float, default=0.0)
     risk_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    capital_bucket: Mapped[str] = mapped_column(String(16), default="core", index=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
