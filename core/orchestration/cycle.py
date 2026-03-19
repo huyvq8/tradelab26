@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import logging
 import time as _time
+import uuid
 from datetime import date, datetime, time, timedelta
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -74,6 +76,8 @@ from core.intelligence import build_token_features, classify_token, route_for_pr
 from core.intelligence.intelligence_config import load_classification_config
 from core.position import ScaleInEngine, load_scale_in_config, ScaleInAction
 from core.position.scale_in_queries import last_scale_in_at
+from core.brain.context import should_block_cycle_symbol
+from core.brain.types import BrainV4CycleContext
 
 # Cache token features + profile + routing 120s — log chỉ khi refresh (document/request: giảm TOKEN_FEATURES_BUILT mỗi 10s).
 _TOKEN_INTEL_CACHE: dict[str, tuple[float, dict, "TokenProfile", object]] = {}
@@ -253,6 +257,144 @@ def _log_scale_in_rejected(symbol: str, side: str, reason: str, position: Positi
     log.info("SCALE_IN_REJECTED symbol=%s side=%s reason=%s%s", symbol, side, reason, suffix)
 
 
+def _persist_brain_v4_symbol_events(
+    db: Session,
+    ctx: BrainV4CycleContext,
+    symbol: str,
+    quote: Any,
+    regime: str,
+    klines_full: list,
+) -> None:
+    cy = ctx.brain_cycle_id
+    if not cy:
+        return
+    try:
+        from core.brain.persistence import (
+            insert_change_point_event,
+            insert_state_inference_event,
+            p1_persistence_enabled,
+        )
+        from core.brain.state_inference import infer_token_state
+
+        if not p1_persistence_enabled():
+            return
+        sym_trace = ctx.symbol_decision_trace_ids.get(symbol)
+        if not sym_trace:
+            sym_trace = str(uuid.uuid4())
+            ctx.symbol_decision_trace_ids[symbol] = sym_trace
+        mkt_trace = ctx.market_decision_trace_id or None
+        h = ctx.config_hash_v4 or ""
+        chg = float(getattr(quote, "percent_change_24h", 0) or 0)
+        tok, ct = infer_token_state(chg, klines_full, ctx.market_state)
+        cp_res = ctx.symbol_change_point_results.get(symbol)
+        if cp_res is None:
+            from core.brain.change_point import compute_change_point_for_symbol
+            from core.brain.runtime_state import load_runtime_state
+
+            rt0 = load_runtime_state()
+            cp_res = compute_change_point_for_symbol(
+                klines_full,
+                "long",
+                prev_btc_regime=rt0.last_btc_regime or ctx.btc_regime,
+                curr_btc_regime=ctx.btc_regime,
+                funding_rate=None,
+            )
+        feat: dict[str, Any] = {
+            "regime": regime,
+            "btc_regime": ctx.btc_regime,
+            "trace_id": ctx.trace_id,
+            "policy_mode": ctx.policy.active_policy_mode,
+            "decision_trace_id": sym_trace,
+            "market_decision_trace_id": mkt_trace,
+        }
+        insert_state_inference_event(
+            db,
+            cycle_id=cy,
+            decision_trace_id=sym_trace,
+            market_decision_trace_id=mkt_trace,
+            symbol=symbol,
+            market_state=str(ctx.market_state),
+            token_state=str(tok),
+            position_state=None,
+            conf_m=float(ctx.market_state_confidence),
+            conf_t=float(ct),
+            conf_p=None,
+            feature_snapshot=feat,
+            reason_codes=[],
+            config_hash=h,
+        )
+        insert_change_point_event(
+            db,
+            cycle_id=cy,
+            decision_trace_id=sym_trace,
+            market_decision_trace_id=mkt_trace,
+            symbol=symbol,
+            cp=cp_res,
+            config_hash=h,
+        )
+    except Exception:
+        pass
+
+
+def _brain_v4_scale_in_gate_ok(
+    brain_v4_ctx: BrainV4CycleContext | None,
+    symbol: str,
+    quote: Any,
+    klines: list,
+    position: Position,
+    quotes: dict[str, Any],
+) -> bool:
+    if not brain_v4_ctx:
+        return True
+    from core.brain.change_point import compute_change_point_for_symbol
+    from core.brain.policy_apply import scale_in_policy_gate
+    from core.brain.runtime_state import load_runtime_state
+    from core.brain.state_inference import infer_position_state, infer_token_state
+
+    rt_si = load_runtime_state()
+    qbtc_lp = quotes.get("BTC")
+    btc_r_lp = (
+        derive_regime(float(qbtc_lp.percent_change_24h or 0), float(qbtc_lp.volume_24h or 0))
+        if qbtc_lp
+        else brain_v4_ctx.btc_regime
+    )
+    cp_live = compute_change_point_for_symbol(
+        klines,
+        position.side or "long",
+        prev_btc_regime=rt_si.last_btc_regime or btc_r_lp,
+        curr_btc_regime=btc_r_lp,
+        funding_rate=None,
+    )
+    prev_cp = rt_si.last_cp_by_symbol.get(symbol)
+    chg_t = float(getattr(quote, "percent_change_24h", 0) or 0)
+    tok_st, _ = infer_token_state(chg_t, klines, brain_v4_ctx.market_state)
+    direction = 1 if position.side == "long" else -1
+    risk_u = None
+    if position.stop_loss is not None and position.quantity:
+        risk_u = abs(float(position.entry_price) - float(position.stop_loss)) * float(position.quantity)
+    pnl_u = (float(getattr(quote, "price", 0) or 0) - float(position.entry_price)) * direction * float(
+        position.quantity or 0
+    )
+    unreal_r = (pnl_u / risk_u) if risk_u and risk_u > 0 else 0.0
+    pos_st, _ = infer_position_state(
+        side=position.side or "long",
+        entry_price=float(position.entry_price),
+        stop_loss=float(position.stop_loss) if position.stop_loss is not None else None,
+        price_now=float(getattr(quote, "price", 0) or 0),
+        unrealized_r=unreal_r,
+        token_state=tok_st,
+        market_state=brain_v4_ctx.market_state,
+        change_point_score=cp_live.change_point_score,
+    )
+    return scale_in_policy_gate(
+        brain_v4_ctx,
+        symbol,
+        change_point_score=cp_live.change_point_score,
+        position_state=str(pos_st),
+        prev_cp=prev_cp,
+    )
+
+
 def _get_volatility_tier_for_position(
     symbol: str,
     quote: object | None,
@@ -363,6 +505,7 @@ class SimulationCycle:
         portfolio_name: str,
         symbols: list[str],
         market_snapshot: CycleMarketSnapshot | None = None,
+        brain_v4_ctx: BrainV4CycleContext | None = None,
     ) -> dict:
         portfolio = db.scalar(select(Portfolio).where(Portfolio.name == portfolio_name))
         if portfolio is None:
@@ -442,6 +585,11 @@ class SimulationCycle:
             weight_min=float(sw_cfg.get("weight_min", 0.25)),
             weight_max=float(sw_cfg.get("weight_max", 1.5)),
         )
+        per_sw = sw_cfg.get("per_strategy") or {}
+        for name, w in per_sw.items():
+            nk = (str(name) if name is not None else "").strip()
+            if nk and isinstance(w, (int, float)) and float(w) > 0:
+                strategy_weights[nk] = round(float(w), 4)
         open_positions_for_allocation = [
             {"strategy_name": getattr(p, "strategy_name", None) or "?"}
             for p in open_positions
@@ -467,7 +615,27 @@ class SimulationCycle:
                 soft_mult=float(combo_cfg.get("soft_mult", 0.5)),
             )
 
+        if brain_v4_ctx is None:
+            try:
+                from core.brain.context import build_brain_v4_cycle_context
+
+                brain_v4_ctx = build_brain_v4_cycle_context(
+                    symbols=[s for s in quotes.keys()],
+                    quotes=quotes,
+                    daily_realized_pnl_usd=daily_realized,
+                    daily_realized_r=daily_realized_r,
+                    portfolio_capital_usd=float(getattr(portfolio, "capital_usd", 0) or 0),
+                    max_daily_loss_pct=float(settings.max_daily_loss_pct),
+                    brain_cycle_id=None,
+                    db=None,
+                    portfolio_id=portfolio.id,
+                )
+            except Exception:
+                brain_v4_ctx = None
+
         for symbol, quote in quotes.items():
+            if brain_v4_ctx and should_block_cycle_symbol(brain_v4_ctx, symbol):
+                continue
             opened_this_symbol = False
             klines_full: list = list(market_snapshot.klines_1h_by_symbol.get(symbol, [])) if market_snapshot else []
             if not klines_full:
@@ -483,6 +651,8 @@ class SimulationCycle:
                 "QUOTE_REGIME symbol=%s price=%s change_24h=%.4f volume_24h=%.0f regime=%s",
                 symbol, quote.price, quote.percent_change_24h, quote.volume_24h, regime,
             )
+            if brain_v4_ctx:
+                _persist_brain_v4_symbol_events(db, brain_v4_ctx, symbol, quote, regime=str(regime), klines_full=klines_full)
             profile = None
             route = None
             if class_cfg.get("enabled", True):
@@ -571,6 +741,21 @@ class SimulationCycle:
                         "reason": corr_msg,
                     })
                     continue
+                if brain_v4_ctx:
+                    try:
+                        from core.brain.policy_apply import apply_policy_entry_overlay
+
+                        rej_v4 = apply_policy_entry_overlay(
+                            signal,
+                            brain_v4_ctx,
+                            regime=str(regime),
+                            market_state=str(brain_v4_ctx.market_state),
+                        )
+                        if rej_v4:
+                            rejected_signals.append(rej_v4)
+                            continue
+                    except Exception:
+                        pass
                 # Số lệnh đang mở cho symbol này
                 opens_for_symbol = [p for p in open_positions if p.symbol == symbol]
                 count_open_for_symbol = len(opens_for_symbol)
@@ -582,6 +767,24 @@ class SimulationCycle:
                 if len(existing_same_side) == 1 and is_binance and scale_in_enabled:
                     position = existing_same_side[0]
                     si_flat = scale_in_cfg.get("scale_in") or {}
+                    if not _brain_v4_scale_in_gate_ok(brain_v4_ctx, symbol, quote, klines_full, position, quotes):
+                        _log_scale_in_rejected(symbol, signal.side, "brain_v4_policy_gate", position, si_flat)
+                        try:
+                            from core.rejected_signals_log import log_rejected
+
+                            log_rejected(
+                                symbol,
+                                (signal.strategy_name or "").strip() or "?",
+                                "Scale-in rejected: brain_v4_policy_gate",
+                                reason_code="SCALE_IN_REJECTED",
+                                meta={"detail": "brain_v4_policy_gate", "side": signal.side},
+                            )
+                        except Exception:
+                            pass
+                        skipped_already_open.append(
+                            f"{symbol} ({signal.strategy_name}) — scale-in: brain_v4_policy_gate"
+                        )
+                        continue
                     engine = ScaleInEngine(scale_in_cfg)
                     decision = engine.evaluate(
                         signal, position, quote.price, portfolio, open_positions,
@@ -752,6 +955,7 @@ class SimulationCycle:
                         "reason": decision.reason,
                     })
                     continue
+                post_risk_engine_usd = float(decision.size_usd)
                 # Phase 1 v6: áp dụng giảm size theo volatility guard
                 size_after_vol = decision.size_usd
                 if vol_result.reduce_size_pct > 0:
@@ -792,6 +996,18 @@ class SimulationCycle:
                     final_size_usd = size_after_vol
                 if entry_combo_mult < 1.0:
                     final_size_usd = round(float(final_size_usd) * float(entry_combo_mult), 2)
+                pre_modifier_usd = float(final_size_usd)
+                mod_breakdown: dict[str, Any] = {}
+                if brain_v4_ctx:
+                    try:
+                        from core.brain.policy_apply import apply_policy_size_breakdown
+
+                        final_size_usd, mod_breakdown = apply_policy_size_breakdown(
+                            pre_modifier_usd, brain_v4_ctx, symbol=symbol
+                        )
+                    except Exception:
+                        mod_breakdown = {}
+                post_modifier_usd = float(final_size_usd)
                 if final_size_usd < 25:
                     logging.getLogger(__name__).info(
                         "REJECTED_SIGNAL symbol=%s strategy=%s reason=Position size too small after dynamic sizing. final_size_usd=%s",
@@ -805,7 +1021,8 @@ class SimulationCycle:
                         "meta": {"combo_mult": entry_combo_mult},
                     })
                     continue
-                final_size_usd = min(final_size_usd, available_cash)
+                final_executable_usd = min(final_size_usd, available_cash)
+                final_size_usd = final_executable_usd
                 logging.getLogger(__name__).info(
                     "OPENING_POSITION symbol=%s strategy=%s side=%s size_usd=%s combo_mult=%s",
                     signal.symbol, signal.strategy_name, signal.side, round(final_size_usd, 2), entry_combo_mult,
@@ -821,6 +1038,37 @@ class SimulationCycle:
                         Trade.action == "open",
                     )
                 )
+                if open_trade and brain_v4_ctx and brain_v4_ctx.brain_cycle_id:
+                    open_trade.brain_cycle_id = brain_v4_ctx.brain_cycle_id
+                    _tid = brain_v4_ctx.symbol_decision_trace_ids.get(symbol)
+                    if _tid:
+                        open_trade.decision_trace_id = _tid
+                try:
+                    from core.brain.persistence import insert_brain_sizing_event, p1_persistence_enabled
+
+                    if (
+                        brain_v4_ctx
+                        and brain_v4_ctx.brain_cycle_id
+                        and p1_persistence_enabled()
+                    ):
+                        insert_brain_sizing_event(
+                            db,
+                            cycle_id=brain_v4_ctx.brain_cycle_id,
+                            decision_trace_id=brain_v4_ctx.symbol_decision_trace_ids.get(symbol),
+                            market_decision_trace_id=brain_v4_ctx.market_decision_trace_id or None,
+                            symbol=symbol,
+                            strategy_name=signal.strategy_name or "",
+                            side=signal.side or "",
+                            post_risk_engine_usd=post_risk_engine_usd,
+                            pre_modifier_usd=pre_modifier_usd,
+                            post_modifier_usd=post_modifier_usd,
+                            final_executable_usd=final_executable_usd,
+                            available_cash_usd=float(available_cash),
+                            modifier_breakdown=mod_breakdown,
+                            config_hash=brain_v4_ctx.config_hash_v4 or "",
+                        )
+                except Exception:
+                    pass
                 # v4: full entry context for "biết vì sao vừa vào lệnh"
                 stop_distance = abs(signal.entry_price - signal.stop_loss) / max(signal.entry_price, 1e-9)
                 risk_score = min(1.0, stop_distance * 15) if stop_distance > 0 else None  # proxy 0-1
@@ -957,11 +1205,48 @@ class SimulationCycle:
                                             "reason": corr_msg_s,
                                         })
                                         continue
+                                    if brain_v4_ctx:
+                                        try:
+                                            from core.brain.policy_apply import apply_policy_entry_overlay
+
+                                            rej_vs = apply_policy_entry_overlay(
+                                                signal,
+                                                brain_v4_ctx,
+                                                regime=str(regime),
+                                                market_state=str(brain_v4_ctx.market_state),
+                                            )
+                                            if rej_vs:
+                                                rejected_signals.append(rej_vs)
+                                                continue
+                                        except Exception:
+                                            pass
                                     opens_for_symbol = [p for p in open_positions if p.symbol == symbol]
                                     existing_same_side_short = [p for p in opens_for_symbol if (p.side or "").lower() == "short"]
                                     if len(existing_same_side_short) == 1 and is_binance and scale_in_enabled:
                                         position = existing_same_side_short[0]
                                         si_flat_short = scale_in_cfg.get("scale_in") or {}
+                                        if not _brain_v4_scale_in_gate_ok(
+                                            brain_v4_ctx, symbol, quote, klines_1h_short, position, quotes
+                                        ):
+                                            _log_scale_in_rejected(
+                                                symbol, "short", "brain_v4_policy_gate", position, si_flat_short
+                                            )
+                                            try:
+                                                from core.rejected_signals_log import log_rejected
+
+                                                log_rejected(
+                                                    symbol,
+                                                    (signal.strategy_name or "").strip() or "?",
+                                                    "Scale-in rejected (short): brain_v4_policy_gate",
+                                                    reason_code="SCALE_IN_REJECTED",
+                                                    meta={"detail": "brain_v4_policy_gate", "side": "short"},
+                                                )
+                                            except Exception:
+                                                pass
+                                            skipped_already_open.append(
+                                                f"{symbol} ({signal.strategy_name}) — scale-in: brain_v4_policy_gate"
+                                            )
+                                            continue
                                         engine_short = ScaleInEngine(scale_in_cfg)
                                         decision_short = engine_short.evaluate(
                                             signal, position, quote.price, portfolio, open_positions,
@@ -1077,6 +1362,7 @@ class SimulationCycle:
                                                 cs_mgr=cs_mgr,
                                             )
                                             if decision.approved:
+                                                post_risk_engine_usd = float(decision.size_usd)
                                                 size_after_vol = decision.size_usd
                                                 if vol_result.reduce_size_pct > 0:
                                                     size_after_vol = round(decision.size_usd * (1.0 - vol_result.reduce_size_pct), 2)
@@ -1101,8 +1387,21 @@ class SimulationCycle:
                                                         final_size_usd = size_after_vol
                                                     if entry_combo_mult_s < 1.0:
                                                         final_size_usd = round(float(final_size_usd) * float(entry_combo_mult_s), 2)
+                                                    pre_modifier_usd = float(final_size_usd)
+                                                    mod_breakdown = {}
+                                                    if brain_v4_ctx:
+                                                        try:
+                                                            from core.brain.policy_apply import apply_policy_size_breakdown
+
+                                                            final_size_usd, mod_breakdown = apply_policy_size_breakdown(
+                                                                pre_modifier_usd, brain_v4_ctx, symbol=symbol
+                                                            )
+                                                        except Exception:
+                                                            mod_breakdown = {}
+                                                    post_modifier_usd = float(final_size_usd)
                                                     if final_size_usd >= 25:
-                                                        final_size_usd = min(final_size_usd, available_cash)
+                                                        final_executable_usd = min(final_size_usd, available_cash)
+                                                        final_size_usd = final_executable_usd
                                                         position = self.execution.open_position(db, portfolio.id, signal, final_size_usd)
                                                         if not hasattr(self.execution, "get_available_balance_usd"):
                                                             portfolio.cash_usd -= final_size_usd
@@ -1112,6 +1411,40 @@ class SimulationCycle:
                                                                 Trade.action == "open",
                                                             )
                                                         )
+                                                        if open_trade and brain_v4_ctx and brain_v4_ctx.brain_cycle_id:
+                                                            open_trade.brain_cycle_id = brain_v4_ctx.brain_cycle_id
+                                                            _tid_s = brain_v4_ctx.symbol_decision_trace_ids.get(symbol)
+                                                            if _tid_s:
+                                                                open_trade.decision_trace_id = _tid_s
+                                                        try:
+                                                            from core.brain.persistence import (
+                                                                insert_brain_sizing_event,
+                                                                p1_persistence_enabled,
+                                                            )
+
+                                                            if (
+                                                                brain_v4_ctx
+                                                                and brain_v4_ctx.brain_cycle_id
+                                                                and p1_persistence_enabled()
+                                                            ):
+                                                                insert_brain_sizing_event(
+                                                                    db,
+                                                                    cycle_id=brain_v4_ctx.brain_cycle_id,
+                                                                    decision_trace_id=brain_v4_ctx.symbol_decision_trace_ids.get(symbol),
+                                                                    market_decision_trace_id=brain_v4_ctx.market_decision_trace_id or None,
+                                                                    symbol=symbol,
+                                                                    strategy_name=signal.strategy_name or "",
+                                                                    side=signal.side or "",
+                                                                    post_risk_engine_usd=post_risk_engine_usd,
+                                                                    pre_modifier_usd=pre_modifier_usd,
+                                                                    post_modifier_usd=post_modifier_usd,
+                                                                    final_executable_usd=final_executable_usd,
+                                                                    available_cash_usd=float(available_cash),
+                                                                    modifier_breakdown=mod_breakdown,
+                                                                    config_hash=brain_v4_ctx.config_hash_v4 or "",
+                                                                )
+                                                        except Exception:
+                                                            pass
                                                         stop_distance = abs(signal.entry_price - signal.stop_loss) / max(signal.entry_price, 1e-9)
                                                         risk_score = min(1.0, stop_distance * 15) if stop_distance > 0 else None
                                                         entry_ctx = build_entry_context(
@@ -1197,6 +1530,10 @@ class SimulationCycle:
             "daily_realized_fast_usd": daily_realized_fast,
             "open_core_positions": open_core,
             "open_fast_positions": open_fast,
+            "brain_cycle_id": (brain_v4_ctx.brain_cycle_id if brain_v4_ctx else None),
+            "market_decision_trace_id": (
+                brain_v4_ctx.market_decision_trace_id if brain_v4_ctx else None
+            ),
         }
 
     def sync_positions_from_binance(self, db: Session, portfolio_name: str) -> dict:
@@ -1368,7 +1705,13 @@ class SimulationCycle:
         db.flush()
         return {"closed": closed}
 
-    def review_positions_and_act(self, db: Session, portfolio_name: str) -> list[dict]:
+    def review_positions_and_act(
+        self,
+        db: Session,
+        portfolio_name: str,
+        brain_v4_ctx: BrainV4CycleContext | None = None,
+        brain_cycle_id: str | None = None,
+    ) -> list[dict]:
         """
         Chủ động đọc từng vị thế đang mở, quyết định hành động (CLOSE / UPDATE_TP_SL / HOLD) và thực hiện.
         Trả về danh sách [{symbol, side, action, reason}, ...] để log. Đây là cơ chế 'giải pháp cho vị thế hiện tại'.
@@ -1402,6 +1745,27 @@ class SimulationCycle:
                 actions.append({"symbol": pos.symbol, "side": pos.side, "action": "HOLD", "reason": "không có giá"})
                 continue
             price_now = quotes[pos.symbol].price
+            try:
+                from core.brain.integration import try_brain_v4_reflex_for_position
+
+                handled, reflex_action = try_brain_v4_reflex_for_position(
+                    db,
+                    portfolio,
+                    pos,
+                    price_now,
+                    quotes,
+                    executor,
+                    paper,
+                    brain_cycle_id=brain_cycle_id or (brain_v4_ctx.brain_cycle_id if brain_v4_ctx else None),
+                    market_decision_trace_id=(
+                        brain_v4_ctx.market_decision_trace_id if brain_v4_ctx else None
+                    ),
+                )
+                if handled and reflex_action:
+                    actions.append(reflex_action)
+                    continue
+            except Exception:
+                pass
             direction = 1 if pos.side == "long" else -1
             pnl_pct = (price_now - pos.entry_price) / pos.entry_price * direction * 100 if pos.entry_price else 0
             age_hours = (now - pos.opened_at).total_seconds() / 3600.0 if getattr(pos, "opened_at", None) else 0
@@ -1544,6 +1908,24 @@ class SimulationCycle:
                     load_proactive_exit_config,
                 )
                 pe_cfg = load_proactive_exit_config()
+                if brain_v4_ctx:
+                    try:
+                        from core.brain.policy_apply import merge_proactive_exit_overlay
+
+                        pe_cfg = merge_proactive_exit_overlay(
+                            pe_cfg, brain_v4_ctx.policy.active_policy_mode
+                        )
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        from core.brain.policy_apply import merge_proactive_exit_overlay
+                        from core.brain.runtime_state import load_runtime_state
+
+                        rt_pe = load_runtime_state()
+                        pe_cfg = merge_proactive_exit_overlay(pe_cfg, rt_pe.policy_mode)  # type: ignore[arg-type]
+                    except Exception:
+                        pass
                 if pe_cfg.get("enabled", True) and klines and quote:
                     pe_result = evaluate_position(
                         pos, price_now, klines, quote, pe_cfg, has_partial_closed=has_partial

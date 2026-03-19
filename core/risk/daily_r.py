@@ -1,6 +1,10 @@
 """
-Tổng R trong ngày (lệnh đóng): R = pnl_usd / risk_usd mỗi lệnh.
-Dùng chung cho Kill switch (cycle/worker) và Dashboard để không lệch số.
+Tổng R trong ngày (lệnh đóng): R = sum_i (pnl_usd_i / risk_usd_i) cho từng Trade action=close.
+
+- **Không phải** “số USD lỗ trong ngày”. USD đã chốt = sum(pnl_usd) của các lệnh đóng.
+- **risk_usd** trên bản ghi close (sau sửa) lấy theo **initial_stop_loss** nếu có, để SL trailing/breakeven
+  không làm risk_usd → 0 và phình R vô lý.
+- **partial_close** không vào metric kill switch mặc định (chỉ action=close); nếu sau này gộp cần định nghĩa riêng.
 """
 from __future__ import annotations
 

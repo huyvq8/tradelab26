@@ -320,6 +320,7 @@ class BinanceFuturesExecutor:
             entry_price=avg_price,
             quantity=quantity_saved,
             stop_loss=signal.stop_loss,
+            initial_stop_loss=signal.stop_loss,
             take_profit=signal.take_profit,
             confidence=signal.confidence,
             opened_at=datetime.utcnow(),
@@ -493,7 +494,10 @@ class BinanceFuturesExecutor:
         position.quantity = round(position.quantity - exec_qty, 8)
         direction = 1 if position.side == "long" else -1
         gross_pnl = (exit_price - position.entry_price) * exec_qty * direction
-        risk_usd = abs(position.entry_price - position.stop_loss) * exec_qty if position.stop_loss else None
+        sl_for_r = getattr(position, "initial_stop_loss", None)
+        if sl_for_r is None:
+            sl_for_r = position.stop_loss
+        risk_usd = abs(position.entry_price - sl_for_r) * exec_qty if sl_for_r is not None else None
         bpart = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,

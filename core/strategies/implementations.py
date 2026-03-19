@@ -27,7 +27,14 @@ class TrendFollowingStrategy(BaseStrategy):
         if len(klines) >= 15:
             atr = atr_mean_range(klines, 14)
             if atr and atr > 0:
-                zl, zh, sl, tp, tp_ext, _ = structural_long_levels(price, atr)
+                zl, zh, sl, tp, tp_ext, _ = structural_long_levels(
+                    price,
+                    atr,
+                    tp_atr_mult=1.5,
+                    tp_ext_atr_mult=2.25,
+                    max_tp_pct=0.03,
+                    max_tp_ext_pct=0.045,
+                )
                 q = quality_long_momentum(
                     regime=regime, change_24h=change_24h, price=price, klines=klines, atr=atr
                 )
@@ -97,9 +104,10 @@ class BreakoutMomentumStrategy(BaseStrategy):
                     price,
                     atr,
                     sl_atr_mult=1.15,
-                    tp_atr_mult=1.85,
-                    tp_ext_atr_mult=2.8,
-                    max_tp_pct=0.038,
+                    tp_atr_mult=1.5,
+                    tp_ext_atr_mult=2.25,
+                    max_tp_pct=0.03,
+                    max_tp_ext_pct=0.045,
                 )
                 q = quality_long_momentum(
                     regime=regime, change_24h=change_24h, price=price, klines=klines, atr=atr
@@ -169,7 +177,7 @@ class MeanReversionStrategy(BaseStrategy):
             atr = atr_mean_range(klines, 14)
             if atr and atr > 0:
                 sl = price - max(1.2 * atr, 0.012 * price)
-                tp = price + min(1.8 * atr, 0.035 * price)
+                tp = price + min(1.5 * atr, 0.03 * price)
                 z = 0.18 * atr
                 zl, zh = price - z, price + z
                 q = 0.55 + min(0.15, abs(change_24h) / 200.0)
@@ -186,7 +194,7 @@ class MeanReversionStrategy(BaseStrategy):
                     regime,
                     entry_zone_low=zl,
                     entry_zone_high=zh,
-                    take_profit_extended=price + min(2.4 * atr, 0.045 * price),
+                    take_profit_extended=price + min(2.0 * atr, 0.04 * price),
                     levels_from_structure=True,
                     atr_estimate_1h=atr,
                     structure_meta=_native_structure_meta(

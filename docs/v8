@@ -1,0 +1,472 @@
+# TASK: Build P2 for Brain V4
+# Goal: controlled learning + portfolio-wide coordination
+# Output file: docs/audit/brain-v4-p2-learning-and-portfolio-spec.md
+
+Bối cảnh hiện tại:
+Repo đã có:
+- docs/audit/autonomous-regime-aware-trading-brain-v4.md
+- docs/audit/brain-v4-p1-adaptive-layer-spec.md
+- P0 + P1 đã code:
+  - state inference
+  - change-point detection
+  - meta-policy
+  - reflex layer
+  - runtime state
+  - decision_trace_id / market_decision_trace_id
+  - persistence events
+  - policy_apply vào entry/sizing/scale-in/proactive
+  - API / dashboard reasoning
+  - replay cơ bản
+
+Hiện tại V4 đã là adaptive operating layer khá tốt ở cấp symbol / tick.
+
+Nhưng vẫn CHƯA đủ để gọi là “expert trading brain” hoàn chỉnh vì còn thiếu 2 tầng cuối:
+
+1. Controlled learning:
+- hệ thống đã log và replay được, nhưng chưa đánh giá chất lượng quyết định một cách có hệ thống
+- chưa có proposal workflow đủ mạnh để học từ outcome mà không tự phá hệ thống
+- chưa có governance rõ ràng cho việc cái gì chỉ journal, cái gì thành proposal, cái gì cần approval
+
+2. Portfolio-wide coordination:
+- hiện brain chủ yếu mạnh ở cấp symbol
+- chưa có intelligence đủ mạnh ở cấp danh mục
+- chưa điều phối exposure, correlation, cluster risk, market-wide de-risk như một chuyên gia quản lý danh mục
+
+Hãy viết spec P2 thật chi tiết, neo đúng vào repo hiện tại, để hoàn thiện 2 tầng này.
+
+---
+
+# YÊU CẦU CHUNG
+
+- Không viết lý thuyết chung chung
+- Không thêm strategy mới
+- Không để LLM tự vào lệnh
+- Không cho hệ thống tự sửa production config vô điều kiện
+- Mọi phần phải trả lời rõ:
+  - input là gì
+  - output là gì
+  - persist gì
+  - điểm chèn vào repo ở đâu
+  - test thế nào
+- Phải phân biệt rõ:
+  - evaluation
+  - learning
+  - proposal
+  - approval
+  - portfolio coordination
+
+---
+
+# PHẦN 1 — GAP FROM P1
+
+Trước tiên phải chỉ rõ:
+- P1 đã giải quyết được gì
+- P1 còn thiếu gì để thành “learning brain”
+- P1 còn thiếu gì để thành “portfolio brain”
+
+Phải nêu rõ các hạn chế hiện tại, ví dụ:
+- chỉ biết event xảy ra, chưa biết event đó tốt/xấu ra sao
+- biết reflex đã kích hoạt, chưa biết reflex đó cứu được bao nhiêu hay làm mất bao nhiêu
+- biết policy mode đã đổi, chưa biết mode đó có phù hợp regime không
+- biết từng symbol đang bị chặn, nhưng chưa biết tổng danh mục đang risk quá mức hay chưa
+
+---
+
+# PHẦN 2 — DECISION / OUTCOME QUALITY EVALUATION LAYER
+
+Thiết kế một lớp chấm điểm chất lượng quyết định sau khi có outcome.
+
+## 2.1 Phải chấm ít nhất các loại quality score sau
+
+### A. State inference quality
+- market state inferred có hợp lý với diễn biến sau đó không
+- token state inferred có đúng pha không
+- position state inferred có phản ánh đúng thesis health không
+
+### B. Change-point quality
+- detector phát hiện sớm hay quá trễ
+- false alarm hay real context break
+- urgency level có hợp lý không
+
+### C. Policy choice quality
+- policy mode được chọn có hợp với regime / stress / BTC context không
+- có quá defensive hay quá aggressive không
+
+### D. Reflex timing quality
+- reflex cứu được lệnh hay thoát non
+- force exit có ngăn lỗ lớn hay cắt đúng đáy
+- partial reduce có giảm damage hay giảm profit không cần thiết
+
+### E. Outcome quality
+- decision_quality_score
+- follow_plan_score
+- edge_realization
+- damage_prevented_score
+- missed_opportunity_cost
+- false_alarm_cost
+
+## 2.2 Với mỗi score phải chỉ rõ
+- input cần dùng
+- thời điểm tính
+- công thức hoặc rule-based rubric
+- persist vào đâu
+- liên kết với decision_trace_id / outcome_id như thế nào
+
+## 2.3 Hãy phân biệt rõ
+- immediate evaluation (ngay sau hành động)
+- delayed evaluation (sau N bars / sau đóng lệnh / cuối ngày)
+
+---
+
+# PHẦN 3 — LEARNING ARTIFACTS & PROPOSAL ENGINE
+
+Thiết kế từ outcome → learning artifact → proposal.
+
+## 3.1 LearningArtifact bắt buộc phải chứa
+- decision_trace_id
+- market_decision_trace_id
+- symbol / position / trade / outcome linkage
+- loss_category hoặc win_pattern
+- expected_vs_actual
+- state_inference_quality
+- change_point_quality
+- policy_choice_quality
+- reflex_timing_quality
+- key lesson summary
+- confidence level
+- proposal_candidate_flag
+
+## 3.2 Proposal engine
+Hệ thống phải có khả năng tạo proposal cho:
+- detector sensitivity adjustment
+- policy switch tuning
+- playbook refinement
+- size multiplier tuning
+- no-trade sensitivity tuning
+- partial/trail behavior tuning
+
+Nhưng proposal phải có guardrail:
+- minimum sample size
+- minimum confidence
+- stability window
+- replay/backtest evidence
+- impact radius
+- risk class of proposal
+
+## 3.3 Phân loại proposal
+Ví dụ:
+- Class A: logging/journal only
+- Class B: paper-mode only suggestion
+- Class C: needs human approval
+- Class D: forbidden auto-change
+
+Phải chỉ rõ proposal nào thuộc lớp nào.
+
+## 3.4 Governance
+Mỗi proposal phải có:
+- proposal_id
+- created_at
+- evidence summary
+- supporting traces
+- metrics impacted
+- expected benefit
+- risk assessment
+- approval status
+- approved_by / rejected_by
+- applied_config_version
+- rollback_reference nếu có
+
+---
+
+# PHẦN 4 — CONFIG VERSIONING / APPROVAL / ROLLBACK
+
+Thiết kế cơ chế quản trị thay đổi để hệ thống học nhưng không tự phá production.
+
+## 4.1 Config / policy artifacts phải version được
+- brain config
+- policy templates
+- detector baselines
+- proposal bundles
+- learned priors
+
+## 4.2 Approval workflow
+Phải rõ:
+- ai được approve
+- proposal loại nào cần 1 bước approve
+- proposal loại nào cần test/replay trước
+- proposal loại nào không bao giờ được auto-apply
+
+## 4.3 Rollback
+Thiết kế rollback:
+- rollback theo proposal
+- rollback theo config version
+- rollback theo date range
+- rollback khi metrics sau apply xấu đi
+
+## 4.4 Safety checks sau apply
+- canary mode
+- paper-only dry run
+- side-by-side replay old vs new
+- post-apply observation window
+
+---
+
+# PHẦN 5 — PORTFOLIO-WIDE INTELLIGENCE
+
+Đây là phần quan trọng nhất để đạt “chuyên gia quản trị danh mục”.
+
+Thiết kế portfolio brain với ít nhất các năng lực sau:
+
+## 5.1 Portfolio state inference
+Suy ra trạng thái danh mục:
+- HEALTHY
+- STRETCHED
+- OVEREXPOSED
+- DEFENSIVE
+- DE-RISKING
+- SHOCK_RESPONSE
+
+Input:
+- total exposure
+- net long / short bias
+- sector / cluster exposure
+- BTC linkage
+- correlation stress
+- number of reflex events
+- unrealized pnl distribution
+- concentration risk
+
+## 5.2 Correlation / cluster risk model
+Không cần quá phức tạp nhưng phải đủ dùng:
+- nhóm token theo BTC-beta / sector / behavior cluster / recent co-move
+- phát hiện khi đang overstack cùng một cluster
+- cấm mở thêm vị thế nếu cluster risk quá cao
+
+## 5.3 Portfolio policy coordination
+Portfolio brain phải có quyền:
+- giảm size toàn cục
+- block entry vào một cluster
+- chuyển mode toàn danh mục sang CAPITAL_PRESERVATION / EXIT_ONLY
+- kích hoạt de-risk khi nhiều context-break cùng lúc
+
+## 5.4 Portfolio reflex
+Thiết kế reflex ở cấp danh mục:
+- nhiều symbol cùng shock
+- BTC break kéo alt invalidation
+- drawdown tăng nhanh
+- exposure tập trung sai hướng
+- correlation spike
+
+Output:
+- portfolio_reflex_action
+- affected symbols
+- urgency
+- reason codes
+
+## 5.5 Portfolio-level metrics
+Ít nhất gồm:
+- portfolio_stress_score
+- correlation_stress_score
+- concentration_score
+- defensive_mode_frequency
+- de_risk_effectiveness
+- cluster_block_saves
+- portfolio_damage_prevented
+
+---
+
+# PHẦN 6 — INTEGRATION INTO CURRENT REPO
+
+Neo đúng vào codebase hiện tại.
+
+## 6.1 Module mới đề xuất
+Ví dụ tối thiểu:
+- core/brain/evaluation.py
+- core/brain/learning_artifacts.py
+- core/brain/proposals.py
+- core/brain/approval.py
+- core/brain/versioning.py
+- core/brain/portfolio_state.py
+- core/brain/portfolio_reflex.py
+- core/brain/portfolio_clusters.py
+
+## 6.2 Existing modules cần sửa
+Chỉ rõ:
+- SimulationCycle.run
+- review_positions_and_act
+- journal/outcome persistence
+- replay.py
+- apps/api/server.py
+- apps/dashboard/app.py
+- worker runner / daily jobs / reflection jobs
+
+## 6.3 Integration timing
+Phải chỉ rõ:
+- cái gì chạy mỗi tick
+- cái gì chạy khi đóng lệnh
+- cái gì chạy cuối ngày
+- cái gì chạy theo batch/reflection job
+
+---
+
+# PHẦN 7 — DB SCHEMA & PERSISTENCE
+
+Thiết kế bảng mới tối thiểu:
+
+## 7.1 Evaluation tables
+- decision_evaluations
+- change_point_evaluations
+- policy_evaluations
+- reflex_evaluations
+
+## 7.2 Learning / proposal tables
+- learning_artifacts
+- brain_proposals
+- proposal_evidence_links
+- proposal_reviews
+- applied_config_versions
+- rollback_events
+
+## 7.3 Portfolio tables
+- portfolio_state_events
+- portfolio_reflex_events
+- cluster_exposure_events
+
+Mỗi bảng phải chỉ rõ:
+- key columns
+- indexed columns
+- json payload nào được phép
+- linkage với cycle_id / market_decision_trace_id / decision_trace_id / outcome_id
+
+---
+
+# PHẦN 8 — API / DASHBOARD EXPANSION
+
+Thiết kế màn hình và API cho P2.
+
+## 8.1 API
+Cần các endpoint tối thiểu:
+- /brain/v4/evaluations/latest
+- /brain/v4/proposals
+- /brain/v4/proposals/{id}
+- /brain/v4/portfolio/latest
+- /brain/v4/portfolio/history
+- /brain/v4/clusters
+- /brain/v4/config/versions
+- /brain/v4/rollback/history
+
+## 8.2 Dashboard
+Cần có các section:
+- Decision Quality
+- Reflex Quality
+- Proposal Review Queue
+- Portfolio Stress
+- Cluster Risk
+- Config Versions / Rollback
+- Damage Prevented vs Missed Opportunity
+
+Mỗi section phải chỉ rõ:
+- data source
+- metric cards
+- filters
+- drilldown path
+
+---
+
+# PHẦN 9 — REPLAY / SIMULATION FOR LEARNING
+
+Mở rộng replay từ P1 sang phục vụ học tập và approval.
+
+## 9.1 Replay use cases
+- đánh giá detector quá nhạy / quá chậm
+- so sánh policy mode A vs B
+- so sánh before/after proposal
+- đo damage prevented
+- đo false alarm cost
+- paper-only portfolio reflex simulation
+
+## 9.2 Side-by-side comparison
+Phải hỗ trợ:
+- old config vs new config
+- old detector baseline vs tuned baseline
+- old portfolio policy vs new portfolio policy
+
+## 9.3 Acceptance for proposal
+Một proposal chỉ được coi là đủ bằng chứng nếu replay / simulation chứng minh:
+- không phá hard safety
+- cải thiện metric mục tiêu
+- không làm xấu metric phụ quá mức
+- ổn định trong nhiều sample
+
+---
+
+# PHẦN 10 — TEST PLAN
+
+Thiết kế test cho P2 tối thiểu gồm:
+
+## 10.1 Evaluation tests
+- score được tính đúng
+- immediate vs delayed evaluation đúng
+- linkage với outcome đúng
+
+## 10.2 Proposal tests
+- proposal không sinh khi sample thiếu
+- proposal sinh đúng khi đủ evidence
+- class/risk đúng
+- approval path đúng
+- rollback path đúng
+
+## 10.3 Portfolio tests
+- overexposure được phát hiện đúng
+- cluster block hoạt động đúng
+- portfolio reflex kích hoạt đúng khi shock
+- market-wide de-risk không đánh nhau với symbol policy
+
+## 10.4 Replay / simulation tests
+- same input same evaluation
+- compare config A/B đúng
+- proposal evidence reproducible
+
+## 10.5 API / dashboard tests
+- endpoint trả đủ field
+- review queue hiển thị đúng
+- config version history đúng
+- portfolio history đúng
+
+---
+
+# PHẦN 11 — ACCEPTANCE CRITERIA P2
+
+P2 chỉ được coi là DONE khi:
+
+- hệ thống không chỉ log event mà chấm được quality của state / policy / reflex / outcome
+- có learning_artifact link đầy đủ tới trace + outcome
+- proposal engine có guardrail rõ và không tự apply bừa
+- có approval + versioning + rollback
+- có portfolio state inference + cluster risk + portfolio reflex
+- dashboard nhìn thấy được chất lượng quyết định, proposal queue, stress danh mục
+- replay phục vụ được approval và regression
+- có test cho evaluation, proposal, portfolio, replay, API
+
+---
+
+# OUTPUT FORMAT
+
+Bắt buộc theo format này:
+
+1. Executive summary
+2. Gap from P1
+3. P2 architecture overview
+4. Evaluation layer design
+5. Learning artifacts + proposal governance
+6. Portfolio-wide intelligence design
+7. DB schema + persistence plan
+8. API / dashboard expansion
+9. Replay / simulation extension
+10. Integration plan in current repo
+11. Test plan
+12. Acceptance checklist
+
+Viết như spec để dev implement ngay.
+Không lan man.
+Không thêm ngoài phạm vi P2.

@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "weights": {
+    "trend": 0.22,
+    "regime_clarity": 0.18,
+    "momentum": 0.15,
+    "btc_context": 0.15,
+    "relative_volume": 0.1,
+    "funding": 0.05,
+    "reversal_penalty": 0.15
+  },
+  "funding_long_bias": -0.08,
+  "exposure_penalty_per_unit": 0.25,
+  "reversal_soft_cap": 0.55,
+  "reversal_hard_cap": 0.8,
+  "feature_caps": {
+    "R_trend_cap": 0.08,
+    "mom_cap": 15,
+    "vol_ratio_cap": 0.04,
+    "funding_cap": 0.0005,
+    "rel_vol_cap": 3.0,
+    "trend_lookback_bars": 24,
+    "atr_period": 14,
+    "rel_volume_lookback": 21
+  },
+  "entry_thresholds": {
+    "enter_min_score": 0.58,
+    "skip_below": 0.45,
+    "btc_risk_off_max_long": 0.25,
+    "min_regime_clarity_enter": 0.3,
+    "max_reversal_enter": 0.75
+  },
+  "win_playbook": {
+    "partial_at_R": [[1.0, 0.25], [2.0, 0.35]],
+    "trail_arm_R": 1.0,
+    "scale_in_min_R": 1.2,
+    "scale_in_max_reversal": 0.45,
+    "near_tp_R": 0.35
+  },
+  "thesis_rules": {
+    "weak_reversal_risk": 0.72,
+    "weak_unrealized_R": 0.0,
+    "hold_min_unrealized_R": -0.35,
+    "reduce_noise_volatility": 0.75,
+    "reduce_fraction_noise": 0.35,
+    "weak_reduce_fraction": 0.5,
+    "trail_tighten_atr_k": 0.5
+  },
+  "regime_shift": {
+    "min_clarity_for_shift_flag": 0.65
+  },
+  "overtrading": {
+    "max_new_positions_per_cycle": 1
+  },
+  "portfolio_exposure_cap_usd": 50000
+}

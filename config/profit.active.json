@@ -29,7 +29,11 @@
     "lookback_days": 30,
     "min_sample": 5,
     "weight_min": 0.25,
-    "weight_max": 1.5
+    "weight_max": 1.5,
+    "per_strategy": {
+      "trend_following": 0.5,
+      "mean_reversion": 1.2
+    }
   },
   "combo_performance": {
     "enabled": true,
@@ -52,7 +56,9 @@
     "partial_1r_enabled": true,
     "partial_1r_min_r": 1.0,
     "partial_1r_fraction": 0.35,
-    "min_hold_minutes_before_move_sl": 20,
+    "lock_profit_min_usd": 2.0,
+    "move_sl_to_be_after_r": 1.2,
+    "min_hold_minutes_before_move_sl": 30,
     "trailing_sl_mode": "lock_profit_r",
     "proactive_exit_threshold": 0.6,
     "tp1_pct_from_entry": 3.5,

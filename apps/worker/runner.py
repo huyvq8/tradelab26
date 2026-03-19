@@ -7,6 +7,7 @@ if str(root) not in sys.path:
     sys.path.insert(0, str(root))
 
 from datetime import date
+import uuid
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -17,8 +18,20 @@ setup_app_logging()
 logger = logging.getLogger(__name__)
 
 from sqlalchemy import select
-from core.db import SessionLocal, Base, engine
+from core.db import (
+    SessionLocal,
+    Base,
+    engine,
+    ensure_brain_v4_p1_trace_columns,
+    ensure_trades_brain_cycle_id_column,
+    ensure_trades_decision_trace_id_column,
+)
 from core.portfolio.models import Portfolio, Position, Trade, DailySnapshot
+
+try:
+    import core.brain.models  # noqa: F401 — register Brain V4 tables before create_all
+except ImportError:
+    pass
 from core.journal.models import JournalEntry
 from core.reporting.models import DailyReport
 from core.config import settings
@@ -35,6 +48,7 @@ try:
         ensure_positions_hedge_column,
         ensure_positions_entry_regime_column,
         ensure_positions_capital_bucket_column,
+        ensure_positions_initial_stop_loss_column,
         ensure_trades_capital_bucket_column,
         ensure_journal_capital_bucket_column,
         ensure_journal_setup_hedge_columns,
@@ -43,9 +57,13 @@ try:
     ensure_positions_hedge_column()
     ensure_positions_entry_regime_column()
     ensure_positions_capital_bucket_column()
+    ensure_positions_initial_stop_loss_column()
     ensure_trades_capital_bucket_column()
     ensure_journal_capital_bucket_column()
     ensure_journal_setup_hedge_columns()
+    ensure_trades_brain_cycle_id_column()
+    ensure_trades_decision_trace_id_column()
+    ensure_brain_v4_p1_trace_columns()
 except Exception:
     pass
 
@@ -114,6 +132,7 @@ def run_cycle_job():
                 pass
         with SessionLocal() as db:
             cycle = SimulationCycle()
+            brain_cycle_id = str(uuid.uuid4())
             cycle.check_sl_tp_and_close(db, "Paper Portfolio")
             # Khi đánh thật Binance: đồng bộ DB với sàn (vị thế đã đóng bởi TP/SL/Trailing trên sàn)
             if type(exec_backend).__name__ == "BinanceFuturesExecutor":
@@ -130,11 +149,28 @@ def run_cycle_job():
                         port.cash_usd = round(bal, 2)
                         # v6: đồng bộ capital_usd với balance khả dụng — RiskEngine + scale-in dùng cùng nguồn vốn thật
                         port.capital_usd = round(bal, 2)
+            brain_ctx = None
+            try:
+                from core.brain.context import build_brain_v4_tick_context
+
+                brain_ctx = build_brain_v4_tick_context(
+                    db,
+                    portfolio_name="Paper Portfolio",
+                    symbols=symbols,
+                    brain_cycle_id=brain_cycle_id,
+                )
+            except Exception:
+                brain_ctx = None
             # Đánh giá từng vị thế hiện tại: cần đóng? cần update TP/SL? hay giữ? — rồi thực hiện và log
-            position_actions = cycle.review_positions_and_act(db, "Paper Portfolio")
+            position_actions = cycle.review_positions_and_act(
+                db,
+                "Paper Portfolio",
+                brain_v4_ctx=brain_ctx,
+                brain_cycle_id=brain_cycle_id,
+            )
             for pa in position_actions:
                 print(f"[Cycle] Vi the {pa['symbol']} ({pa['side']}): {pa['action']} — {pa['reason']}")
-            result = cycle.run(db, "Paper Portfolio", symbols)
+            result = cycle.run(db, "Paper Portfolio", symbols, brain_v4_ctx=brain_ctx)
             db.commit()
         opened = {p["symbol"] for p in result.get("opened_positions") or []}
         signals_fired = result.get("signals_fired") or []

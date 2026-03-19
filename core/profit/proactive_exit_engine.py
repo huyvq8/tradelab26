@@ -357,7 +357,7 @@ def evaluate_position(
             )
 
     trailing_mode = (cfg.get("trailing_sl_mode") or "lock_profit_r").strip()
-    lock_r = 1.0
+    lock_r = max(0.1, float(cfg.get("move_sl_to_be_after_r", 1.0) or 1.0))
     min_hold_min = float(cfg.get("min_hold_minutes_before_move_sl", 0) or 0)
     age_minutes = 1e9
     opened_at = getattr(position, "opened_at", None)

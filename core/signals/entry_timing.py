@@ -90,6 +90,16 @@ def _ohlc(c: Any) -> tuple[float, float, float, float]:
     return o, h, low, cl
 
 
+def _volume(c: Any) -> float:
+    v = getattr(c, "volume", None)
+    if v is None and isinstance(c, dict):
+        v = c.get("volume")
+    try:
+        return max(0.0, float(v or 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
 @dataclass
 class EntryTimingResult:
     ok: bool
@@ -162,6 +172,74 @@ def evaluate_entry_timing(
     body = abs(c - o)
     body_ratio = body / rng
     mid = (h + low) / 2.0
+
+    conf = cfg.get("confirmation") or {}
+    if conf.get("enabled", False):
+        body_min = float(conf.get("candle_body_range_ratio_min", 0.25) or 0.25)
+        details["confirmation_body_range_ratio"] = round(body_ratio, 4)
+        if body_ratio < body_min:
+            return EntryTimingResult(
+                False,
+                "ENTRY_WEAK_BODY",
+                conf.get("reject_message_weak_body")
+                or f"Last 1h candle body/range {body_ratio:.2f} < min {body_min:.2f} (no confirmation).",
+                details,
+            )
+
+        vol_lb = max(3, int(conf.get("volume_lookback_bars", 20) or 20))
+        vol_min_ratio = float(conf.get("volume_spike_min_ratio", 0) or 0)
+        if vol_min_ratio > 0 and len(klines_1h) >= vol_lb + 2:
+            priors = klines_1h[-(vol_lb + 1) : -1]
+            vols = [_volume(k) for k in priors]
+            vols_pos = [v for v in vols if v > 0]
+            v_last = _volume(last)
+            details["confirmation_volume_spike_ratio"] = None
+            if vols_pos and v_last > 0:
+                avg_prev = sum(vols_pos) / len(vols_pos)
+                if avg_prev > 0:
+                    spike_r = v_last / avg_prev
+                    details["confirmation_volume_spike_ratio"] = round(spike_r, 4)
+                    if spike_r < vol_min_ratio:
+                        return EntryTimingResult(
+                            False,
+                            "ENTRY_LOW_VOLUME_SPIKE",
+                            conf.get("reject_message_volume")
+                            or (
+                                f"Volume vs {vol_lb}h avg {spike_r:.2f} < {vol_min_ratio:.2f}; "
+                                "defer until participation confirms."
+                            ),
+                            details,
+                        )
+
+        vwap_lb = max(2, int(conf.get("vwap_lookback_bars", 24) or 24))
+        max_d_vwap = float(conf.get("max_distance_from_vwap_pct", 0) or 0)
+        if max_d_vwap > 0 and len(klines_1h) >= 2:
+            use = klines_1h[-vwap_lb:]
+            tw = 0.0
+            vw = 0.0
+            for k in use:
+                oh, hh, lh, ch = _ohlc(k)
+                typ = (hh + lh + ch) / 3.0
+                vv = _volume(k)
+                if vv > 0 and typ > 0:
+                    tw += typ * vv
+                    vw += vv
+            if vw > 0:
+                vwap_px = tw / vw
+                dist_pct = abs(float(price_now) - vwap_px) / max(vwap_px, 1e-12) * 100.0
+                details["confirmation_vwap"] = round(vwap_px, 8)
+                details["confirmation_dist_from_vwap_pct"] = round(dist_pct, 4)
+                if dist_pct > max_d_vwap:
+                    return EntryTimingResult(
+                        False,
+                        "ENTRY_FAR_FROM_VWAP",
+                        conf.get("reject_message_vwap")
+                        or (
+                            f"Price {dist_pct:.2f}% from session VWAP (max {max_d_vwap:.2f}%); "
+                            "avoid late chase."
+                        ),
+                        details,
+                    )
 
     ext = cfg.get("extended_candle") or {}
     if ext.get("enabled", True):

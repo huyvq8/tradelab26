@@ -9,7 +9,19 @@ import pandas as pd
 import streamlit as st
 from sqlalchemy import select
 
-from core.db import SessionLocal, Base, engine
+from core.db import (
+    SessionLocal,
+    Base,
+    engine,
+    ensure_brain_v4_p1_trace_columns,
+    ensure_trades_brain_cycle_id_column,
+    ensure_trades_decision_trace_id_column,
+)
+
+try:
+    import core.brain.models  # noqa: F401
+except ImportError:
+    pass
 from core.portfolio.models import Portfolio, Position, Trade, DailySnapshot
 from core.reporting.models import DailyReport
 from core.journal.models import JournalEntry
@@ -53,6 +65,7 @@ try:
         ensure_positions_hedge_column,
         ensure_positions_entry_regime_column,
         ensure_positions_capital_bucket_column,
+        ensure_positions_initial_stop_loss_column,
         ensure_trades_capital_bucket_column,
         ensure_journal_capital_bucket_column,
         ensure_journal_setup_hedge_columns,
@@ -61,9 +74,13 @@ try:
     ensure_positions_hedge_column()
     ensure_positions_entry_regime_column()
     ensure_positions_capital_bucket_column()
+    ensure_positions_initial_stop_loss_column()
     ensure_trades_capital_bucket_column()
     ensure_journal_capital_bucket_column()
     ensure_journal_setup_hedge_columns()
+    ensure_trades_brain_cycle_id_column()
+    ensure_trades_decision_trace_id_column()
+    ensure_brain_v4_p1_trace_columns()
 except Exception:
     pass
 
@@ -125,10 +142,11 @@ with st.sidebar:
     kill_switch_r = st.number_input(
         "Ngưỡng R (vd 3 = dừng khi lỗ -3R/ngày)",
         min_value=0.5,
-        max_value=20.0,
+        max_value=10_000.0,
         value=float(kill_switch_r_saved),
         step=0.5,
         key="kill_switch_r",
+        help="Trần trên form 10 000 R (trước đây 20 chỉ là giới hạn UI). Lưu xong Worker dùng đúng số đã lưu.",
     )
     kill_switch_unsaved = kill_switch_enable != kill_switch_saved or abs(kill_switch_r - kill_switch_r_saved) > 0.01
     if kill_switch_unsaved:
@@ -141,6 +159,7 @@ with st.sidebar:
         st.caption(f"Hiện tại: Kill switch **{'bật' if kill_switch_saved else 'tắt'}**, ngưỡng **-{kill_switch_r_saved} R/ngày**.")
     # Trạng thái: đang lỗ bao nhiêu R, còn bao nhiêu đến giới hạn chặn
     daily_r = 0.0
+    daily_close_pnl_usd = 0.0
     try:
         with SessionLocal() as _db:
             portfolio = _db.scalar(select(Portfolio).where(Portfolio.name == "Paper Portfolio"))
@@ -154,20 +173,34 @@ with st.sidebar:
                     Trade.created_at < today_end,
                 )))
                 daily_r = sum_daily_realized_r_from_trades(closed_today)
+                daily_close_pnl_usd = round(sum(float(t.pnl_usd or 0) for t in closed_today), 2)
     except Exception:
-        pass
+        daily_r = 0.0
+        daily_close_pnl_usd = 0.0
     threshold = float(kill_switch_r_saved)
     limit_r = -threshold
     # Số R lỗ thêm (dương) thì chạm ngưỡng chặn
     remaining_to_limit = abs(limit_r - daily_r) if daily_r > limit_r else 0.0
     st.markdown("**Trạng thái hôm nay:**")
-    st.metric(
-        "Tổng R đã thực hiện (lệnh đóng)",
-        f"{daily_r:+.2f} R",
-        help=f"R = PnL / risk mỗi lệnh. **Dương (+R) = lãi**, **Âm (-R) = lỗ**. Chỉ tính lệnh có risk ≥ {MIN_RISK_USD_FOR_R_AGGREGATION} USD (cùng công thức Kill switch / Worker).",
-    )
+    c_r, c_usd = st.columns(2)
+    with c_r:
+        st.metric(
+            "Tổng R đã thực hiện (lệnh đóng)",
+            f"{daily_r:+.2f} R",
+            help=(
+                "Cộng dồn **PnL USD ÷ risk USD** từng lệnh **đóng hết** (action=close) trong ngày theo calendar server. "
+                f"Risk trên lệnh đóng dùng **SL ban đầu** (`initial_stop_loss`) nếu có — tránh R phình khi đã trailing SL về sát giá. "
+                f"Bỏ qua lệnh có risk < {MIN_RISK_USD_FOR_R_AGGREGATION} USD."
+            ),
+        )
+    with c_usd:
+        st.metric(
+            "Tổng PnL đã chốt hôm nay (USD)",
+            f"{daily_close_pnl_usd:+,.2f} USD",
+            help="Cộng `pnl_usd` của các lệnh đóng hết trong ngày — đây mới là ‘lỗ/lãi bao nhiêu tiền’ đã chốt.",
+        )
     if abs(daily_r) > 100:
-        st.caption("⚠️ Giá trị R rất lớn — có thể do vài lệnh có risk_usd quá nhỏ trong DB. Nên kiểm tra dữ liệu lệnh đóng.")
+        st.caption("⚠️ Giá trị R rất lớn — có thể do vài lệnh có risk_usd quá nhỏ trong DB hoặc dữ liệu cũ trước khi có initial_stop_loss. Nên kiểm tra bảng trades đóng.")
     if kill_switch_saved and threshold > 0:
         if daily_r <= limit_r:
             st.warning(f"Đã chạm ngưỡng chặn (**{daily_r:+.2f} R** ≤ **{limit_r:.1f} R**). Worker **sẽ không mở lệnh mới** đến hết ngày.")
@@ -571,6 +604,36 @@ with SessionLocal() as db:
             st.dataframe(pd.DataFrame(wr), width="stretch")
     else:
         st.caption("Không đọc được decision_log hoặc chưa có dòng cho watchlist.")
+
+    st.subheader("Brain V4 (P1 trace)")
+    try:
+        with SessionLocal() as _db_br:
+            from core.brain.persistence import fetch_latest_cycle_summary
+
+            _bundle = fetch_latest_cycle_summary(_db_br)
+        if _bundle and "error" not in _bundle:
+            _cyc = _bundle.get("cycle") or {}
+            _cid = str(_cyc.get("id") or "")
+            _mkt = str(_cyc.get("market_decision_trace_id") or "")
+            st.caption(
+                f"Cycle `{_cid[:8]}…` — started {_cyc.get('started_at')} — "
+                f"market_trace `{_mkt[:8]}…` — hash `{str(_cyc.get('config_hash_v4') or '')[:16]}…`"
+            )
+            _pols = _bundle.get("policy_mode_events") or []
+            if _pols:
+                st.markdown("**Policy (tick gần nhất)**")
+                st.json(_pols[-1])
+            st.caption(
+                f"Inference: {len(_bundle.get('state_inference_events') or [])} | "
+                f"CP: {len(_bundle.get('change_point_events') or [])} | "
+                f"Reflex: {len(_bundle.get('reflex_action_events') or [])}"
+            )
+            with st.expander("Full cycle bundle", expanded=False):
+                st.json(_bundle)
+        else:
+            st.caption("Chưa có bản ghi brain cycle (Worker + `p1.persistence.enabled` sẽ ghi DB).")
+    except Exception as _e:
+        st.caption(f"Không đọc brain trace: {_e}")
 
     if signals_now:
         st.info(

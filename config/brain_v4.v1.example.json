@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "enabled": true,
+  "state_inference": {
+    "shock_cp_for_unstable": 0.82,
+    "breadth_hi_trending": 0.35,
+    "exhausting_rev_proxy": 0.55,
+    "failed_breakout_min": 0.65,
+    "mean_revert_change": 12,
+    "protected_r": 1.2,
+    "stretched_r": 2.5,
+    "cp_exit_urgent": 0.88,
+    "emergency_market_states": ["SHOCK_UNSTABLE"],
+    "state_switch_margin": 0.12,
+    "default_prev_confidence": 0.55
+  },
+  "meta_policy": {
+    "policy_ttl_sec": 120,
+    "re_evaluate_after_sec": 60,
+    "policy_switch_cooldown_sec": 45,
+    "cp_force_exit_only": 0.92,
+    "stress_capital_preservation": 0.78,
+    "stability_aggressive": 0.65,
+    "cp_max_aggressive": 0.38
+  },
+  "change_point": {
+    "weights": {
+      "structure": 0.28,
+      "participation": 0.22,
+      "btc_leader": 0.22,
+      "crowding": 0.13,
+      "shock": 0.15
+    },
+    "false_positive_min_detectors": 2,
+    "urgency_low": 0.55,
+    "urgency_medium": 0.7,
+    "urgency_high": 0.85
+  },
+  "reflex": {
+    "cooldown_sec": 90
+  },
+  "p1": {
+    "persistence": {
+      "enabled": true
+    },
+    "entry": {
+      "confidence_penalty_per_strictness": 0.08,
+      "min_regime_clarity_defensive": 0.42,
+      "base_min_confidence": 0.35
+    },
+    "sizing": {
+      "stress_defensive_mult": 0.5,
+      "max_notional_per_symbol_usd": null
+    },
+    "scale_in": {
+      "max_cp_increase_for_allow": 0.15
+    },
+    "proactive_overlay": {
+      "enabled": true
+    }
+  }
+}

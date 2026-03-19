@@ -35,6 +35,7 @@ class PaperExecutionSimulator:
             entry_price=entry_price,
             quantity=quantity,
             stop_loss=signal.stop_loss,
+            initial_stop_loss=signal.stop_loss,
             take_profit=signal.take_profit,
             confidence=signal.confidence,
             opened_at=datetime.utcnow(),
@@ -97,8 +98,11 @@ class PaperExecutionSimulator:
                 portfolio.cash_usd += (position.entry_price - exit_price) * position.quantity
 
         risk_usd = None
-        if position.stop_loss is not None:
-            risk_usd = abs(position.entry_price - position.stop_loss) * position.quantity
+        sl_for_r = getattr(position, "initial_stop_loss", None)
+        if sl_for_r is None:
+            sl_for_r = position.stop_loss
+        if sl_for_r is not None:
+            risk_usd = abs(position.entry_price - sl_for_r) * position.quantity
         bclose = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
@@ -149,8 +153,11 @@ class PaperExecutionSimulator:
             else:
                 portfolio.cash_usd += (position.entry_price - exit_price) * reduce_quantity
         risk_usd = None
-        if position.stop_loss is not None:
-            risk_usd = abs(position.entry_price - position.stop_loss) * reduce_quantity
+        sl_for_r = getattr(position, "initial_stop_loss", None)
+        if sl_for_r is None:
+            sl_for_r = position.stop_loss
+        if sl_for_r is not None:
+            risk_usd = abs(position.entry_price - sl_for_r) * reduce_quantity
         bpart = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,

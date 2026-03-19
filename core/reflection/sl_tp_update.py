@@ -14,6 +14,20 @@ from core.config import settings
 
 logger = logging.getLogger(__name__)
 
+
+def _effective_lock_profit_min_usd() -> float:
+    """Ưu tiên proactive_exit.lock_profit_min_usd trong profit.active.json, sau đó .env/settings."""
+    try:
+        from core.profit.volatility_guard import load_profit_config
+
+        pe = load_profit_config().get("proactive_exit") or {}
+        v = pe.get("lock_profit_min_usd")
+        if v is not None:
+            return max(0.0, float(v))
+    except Exception:
+        pass
+    return max(0.0, float(getattr(settings, "lock_profit_min_usd", 0) or 0))
+
 # document/request: AI không gọi mỗi cycle — cooldown 10 phút per (symbol, side).
 _LAST_AI_SL_TP_CALL: dict[tuple[str, str], float] = {}
 AI_SL_TP_COOLDOWN_SECONDS = 600  # 10 phút
@@ -402,7 +416,7 @@ def suggest_sl_tp_update(
     (2) AI nếu prefer_ai_sl_tp (có cooldown 10 phút per symbol_key — document/request); (3) rule theo hình nến.
     symbol_key: (symbol, side) để áp cooldown AI, tránh gọi OpenAI mỗi cycle.
     """
-    min_profit_usd = max(0.0, float(getattr(settings, "lock_profit_min_usd", 0) or 0))
+    min_profit_usd = _effective_lock_profit_min_usd()
     buffer_pct = max(0.0, float(getattr(settings, "lock_profit_buffer_pct", 0.002) or 0.002))
     if quantity and quantity > 0 and min_profit_usd > 0:
         lock_suggestion = _suggest_lock_profit_sl(

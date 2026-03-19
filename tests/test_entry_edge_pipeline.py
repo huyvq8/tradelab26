@@ -69,6 +69,60 @@ def test_signal_level_adjust_caps_tp():
     assert tp_pct <= 4.05
 
 
+def test_signal_level_adjust_atr_scaled_uses_atr_not_signal_tp_pct():
+    """tp_mode=atr_scaled: bỏ TP % từ signal (vd 10%), chỉ ATR×mult trong [min,max] %."""
+    sig = StrategySignal("X", "trend_following", "long", 0.7, 100.0, 97.0, 110.0, "x", "high_momentum")
+    klines = [_c(99, 101, 99.2, 100.0) for _ in range(20)]
+    adjust_signal_sl_tp(
+        sig,
+        klines,
+        {
+            "enabled": True,
+            "tp_mode": "atr_scaled",
+            "atr_period": 14,
+            "sl_atr_mult": 1.0,
+            "tp_atr_mult": 1.5,
+            "min_sl_pct": 0.9,
+            "max_sl_pct": 4.0,
+            "max_tp_pct": 3.0,
+            "min_tp_pct": 1.0,
+        },
+    )
+    tp_pct = abs(sig.take_profit - 100.0) / 100.0 * 100.0
+    assert tp_pct <= 3.05
+    assert tp_pct >= 0.9
+
+
+def test_entry_timing_confirmation_weak_body_rejects():
+    def _k(o, h, low, c, vol=1_000_000.0):
+        class K:
+            pass
+
+        x = K()
+        x.open, x.high, x.low, x.close, x.volume = o, h, low, c, vol
+        return x
+
+    klines = [_k(100, 101, 99.9, 100.02, 1e6) for _ in range(25)]
+    cfg = {
+        "enabled": True,
+        "apply_to_strategies": ["trend_following"],
+        "confirmation": {"enabled": True, "candle_body_range_ratio_min": 0.5},
+        "extended_candle": {"enabled": False},
+        "pullback": {"enabled": False},
+        "cooldown": {"enabled": False},
+    }
+    r = evaluate_entry_timing(
+        strategy_name="trend_following",
+        symbol="TEST",
+        side="long",
+        price_now=100.0,
+        klines_1h=klines,
+        cfg=cfg,
+    )
+    assert r.ok is False
+    assert r.reason_code == "ENTRY_WEAK_BODY"
+
+
 def test_get_combo_multiplier():
     m = {"trend_following|BTC": 0.0, "mean_reversion|BTC": 0.5}
     assert get_combo_multiplier(m, "trend_following", "BTC") == 0.0

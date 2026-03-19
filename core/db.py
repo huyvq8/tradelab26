@@ -122,6 +122,76 @@ def ensure_journal_setup_hedge_columns():
                     raise
 
 
+def ensure_trades_brain_cycle_id_column():
+    """Add trades.brain_cycle_id if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE trades ADD COLUMN brain_cycle_id VARCHAR(36)"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            if "duplicate column" not in str(e).lower() and "already exists" not in str(e).lower():
+                raise
+
+
+def ensure_positions_initial_stop_loss_column():
+    """Add positions.initial_stop_loss if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    _sqlite_try_add_column("positions", "initial_stop_loss", "REAL")
+
+
+def ensure_trades_decision_trace_id_column():
+    """Add trades.decision_trace_id if missing (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE trades ADD COLUMN decision_trace_id VARCHAR(36)"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            err = str(e).lower()
+            if "duplicate column" in err or "already exists" in err:
+                pass
+            else:
+                raise
+
+
+def _sqlite_try_add_column(table: str, column: str, col_type: str) -> None:
+    with engine.connect() as conn:
+        try:
+            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            err = str(e).lower()
+            if "duplicate column" in err or "already exists" in err:
+                pass
+            else:
+                raise
+
+
+def ensure_brain_v4_p1_trace_columns():
+    """Add decision_trace_id / market_decision_trace_id on brain event tables (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    pairs = [
+        ("brain_cycles", "market_decision_trace_id", "VARCHAR(36)"),
+        ("state_inference_events", "decision_trace_id", "VARCHAR(36)"),
+        ("state_inference_events", "market_decision_trace_id", "VARCHAR(36)"),
+        ("change_point_events", "decision_trace_id", "VARCHAR(36)"),
+        ("change_point_events", "market_decision_trace_id", "VARCHAR(36)"),
+        ("policy_mode_events", "decision_trace_id", "VARCHAR(36)"),
+        ("reflex_action_events", "decision_trace_id", "VARCHAR(36)"),
+        ("reflex_action_events", "market_decision_trace_id", "VARCHAR(36)"),
+    ]
+    for table, col, typ in pairs:
+        _sqlite_try_add_column(table, col, typ)
+
+
 def get_db():
     db = SessionLocal()
     try:

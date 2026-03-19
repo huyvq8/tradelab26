@@ -53,6 +53,7 @@ def adjust_signal_sl_tp(signal: StrategySignal, klines_1h: list, cfg: dict | Non
     max_sl_pct = float(cfg.get("max_sl_pct", 3.8) or 3.8) / 100.0
     max_tp_pct = float(cfg.get("max_tp_pct", 4.0) or 4.0) / 100.0
     min_tp_pct = float(cfg.get("min_tp_pct", 1.2) or 1.2) / 100.0
+    tp_mode = (cfg.get("tp_mode") or "legacy").strip().lower()
 
     sl_dist_orig = abs(entry - float(signal.stop_loss)) / entry
     tp_dist_orig = abs(float(signal.take_profit) - entry) / entry
@@ -63,7 +64,11 @@ def adjust_signal_sl_tp(signal: StrategySignal, klines_1h: list, cfg: dict | Non
     tp_dist_atr = (atr * tp_mult) / entry
 
     sl_dist = max(min_sl_pct, min(max_sl_pct, max(sl_dist_orig, sl_dist_atr)))
-    tp_dist = min(max_tp_pct, max(min_tp_pct, min(tp_dist_orig, tp_dist_atr)))
+    if tp_mode == "atr_scaled":
+        # TP chỉ từ ATR × mult, kẹp [min_tp_pct, max_tp_pct] — bỏ TP % cố định từ signal (tránh TP ~8–10% trên alt).
+        tp_dist = min(max_tp_pct, max(min_tp_pct, tp_dist_atr))
+    else:
+        tp_dist = min(max_tp_pct, max(min_tp_pct, min(tp_dist_orig, tp_dist_atr)))
 
     if signal.side.lower() == "long":
         signal.stop_loss = entry * (1.0 - sl_dist)

@@ -29,6 +29,8 @@ class Position(Base):
     entry_price: Mapped[float] = mapped_column(Float)
     quantity: Mapped[float] = mapped_column(Float)
     stop_loss: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # SL tại lúc mở (không đổi khi trailing) — dùng cho realized R / kill switch để không phình R khi SL sát entry
+    initial_stop_loss: Mapped[float | None] = mapped_column(Float, nullable=True)
     take_profit: Mapped[float | None] = mapped_column(Float, nullable=True)
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     opened_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -64,6 +66,8 @@ class Trade(Base):
     capital_bucket: Mapped[str] = mapped_column(String(16), default="core", index=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    brain_cycle_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    decision_trace_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="trades")
 
