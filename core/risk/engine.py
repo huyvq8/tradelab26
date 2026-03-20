@@ -40,6 +40,7 @@ class RiskEngine:
         consecutive_loss_count: int = 0,
         override_risk_pct: float | None = None,
         capital_usd_for_risk: float | None = None,
+        max_concurrent_trades_override: int | None = None,
         *,
         capital_scope: str | None = None,
         open_positions_in_scope: int | None = None,
@@ -66,9 +67,15 @@ class RiskEngine:
                     f"Kill switch v5: daily R = {daily_realized_r:.1f} <= -{threshold} (dung trade den het ngay).",
                 )
 
+        max_c_global = (
+            int(max_concurrent_trades_override)
+            if max_concurrent_trades_override is not None
+            else settings.max_concurrent_trades
+        )
         if capital_scope in ("core", "fast"):
             oscope = int(open_positions_in_scope if open_positions_in_scope is not None else open_positions)
-            max_c = int(max_concurrent_in_scope if max_concurrent_in_scope is not None else settings.max_concurrent_trades)
+            base_mc = max_concurrent_in_scope if max_concurrent_in_scope is not None else max_c_global
+            max_c = int(base_mc)
             if oscope >= max_c:
                 return RiskDecision(False, 0.0, "Maximum concurrent trades reached (bucket scope).")
 
@@ -99,7 +106,7 @@ class RiskEngine:
                     f"v5: {cl} lenh thua lien tiep >= {mcl} (bucket scope).",
                 )
         else:
-            if open_positions >= settings.max_concurrent_trades:
+            if open_positions >= max_c_global:
                 return RiskDecision(False, 0.0, "Maximum concurrent trades reached.")
             if daily_realized_pnl <= -(cap_legacy * settings.max_daily_loss_pct):
                 return RiskDecision(False, 0.0, "Daily loss limit reached.")

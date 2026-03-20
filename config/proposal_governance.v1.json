@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "auto_apply": false,
+  "auto_create_proposal_from_artifact": false,
+  "shadow_before_active_for_classes": ["B", "C"],
+  "default_ttl_seconds": { "A": 86400, "B": 7200, "C": 1800 },
+  "rollout_modes": ["shadow", "canary", "full"],
+  "rollback_triggers": {
+    "max_intraday_drawdown_pct": 0.02,
+    "min_trades_before_eval": 5,
+    "false_alarm_rate_threshold": 0.35
+  },
+  "approval_rules": {
+    "A": { "requires_human_approval": false, "min_evidence_samples": 1 },
+    "B": { "requires_human_approval": true, "min_evidence_samples": 3 },
+    "C": { "requires_human_approval": true, "min_evidence_samples": 10 }
+  },
+  "classes": {
+    "A": { "description": "Operational / telemetry only", "requires_approval": false },
+    "B": { "description": "Threshold / profile tuning", "requires_approval": true },
+    "C": { "description": "Risk or capital-impacting", "requires_approval": true }
+  }
+}

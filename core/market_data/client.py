@@ -295,6 +295,20 @@ def get_klines_4h(symbol: str, limit: int = 6) -> list[Kline1h]:
     return BinanceClient().get_klines_4h(symbol, limit)
 
 
+def get_top_symbols_quotes_by_volume(
+    top_n: int = 100,
+    min_volume_usd: float = 500_000,
+) -> dict[str, MarketQuote]:
+    """
+    Public helper cho discovery scanner.
+    Dùng BinanceClient để lấy top symbol USDT theo quoteVolume 24h.
+    """
+    return BinanceClient().get_top_quotes_by_volume(
+        top_n=int(top_n),
+        min_volume_usd=float(min_volume_usd),
+    )
+
+
 def _fetch_futures_24h_for_symbols(symbols_list: list[str]) -> dict[str, tuple[float, float]]:
     """Lấy priceChangePercent và quoteVolume 24h từ fapi/v1/ticker/24hr. Cache 60s. Trả về {symbol: (pct, volume)}."""
     global _FUTURES_24H_CACHE

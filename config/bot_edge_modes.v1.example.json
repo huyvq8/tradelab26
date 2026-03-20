@@ -1,0 +1,15 @@
+{
+  "bot_edge_min_by_mode": {
+    "DEFENSIVE": {
+      "default": 0.78,
+      "mean_reversion": 0.6
+    },
+    "CORE": {
+      "default": 0.62,
+      "mean_reversion": 0.6
+    },
+    "FAST": {
+      "default": 0.72
+    }
+  }
+}

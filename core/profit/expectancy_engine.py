@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from core.journal.models import JournalEntry
 from core.portfolio.models import Trade
+from core.risk.trade_r_metrics import trade_close_has_valid_risk
 
 
 def compute_expectancy_map(
@@ -47,26 +48,22 @@ def compute_expectancy_map(
     groups: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
     for t in trades:
         regime = "unknown"
-        result_r = None
         if t.id in journal_by_trade:
             je = journal_by_trade[t.id]
             regime = (je.regime or "unknown").strip() or "unknown"
-            result_r = getattr(je, "result_r", None)
         strategy = (t.strategy_name or "unknown").strip() or "unknown"
         side = (t.side or "long").strip().lower() or "long"
-        risk_usd = float(t.risk_usd or 0) if t.risk_usd and t.risk_usd > 0 else None
         pnl = float(t.pnl_usd or 0)
-        if risk_usd and risk_usd > 0:
-            r_mult = pnl / risk_usd
-        elif result_r is not None:
-            r_mult = float(result_r)
+        r_usd = float(t.risk_usd) if trade_close_has_valid_risk(t) else None
+        if trade_close_has_valid_risk(t):
+            r_mult = float(t.realized_r_multiple) if t.realized_r_multiple is not None else (pnl / float(t.risk_usd))
         else:
             r_mult = None
         key = (strategy, regime, side)
         groups[key].append({
             "pnl": pnl,
             "r_mult": r_mult,
-            "risk_usd": risk_usd,
+            "risk_usd": r_usd,
         })
 
     out = {}

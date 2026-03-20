@@ -13,6 +13,7 @@ from core.journal.context_builder import (
     serialize_mistake_tags,
 )
 from core.portfolio.models import Position, Trade
+from core.risk.trade_r_metrics import trade_close_has_valid_risk
 from core.strategies.base import StrategySignal
 
 
@@ -30,6 +31,21 @@ def _infer_exit_reason(note: str | None) -> str:
     if "đóng chủ động" in n or "proactive" in n:
         return "proactive"
     return "manual"
+
+
+def _infer_exit_reason_trade(close_trade: Trade) -> str:
+    src = getattr(close_trade, "close_source", None) or ""
+    if src == "sync_binance_reconcile":
+        return "sync_binance"
+    if src == "sl_hit":
+        return "sl_hit"
+    if src == "tp_hit":
+        return "tp_hit"
+    if src in ("proactive_close",):
+        return "proactive"
+    if src in ("manual_close",):
+        return "manual"
+    return _infer_exit_reason(close_trade.note)
 
 
 class JournalService:
@@ -147,10 +163,16 @@ class JournalService:
         journal = db.scalar(select(JournalEntry).where(JournalEntry.trade_id == open_trade.id))
         if not journal or journal.result_summary:
             return None  # đã ghi rồi thì bỏ qua
-        exit_reason = _infer_exit_reason(close_trade.note)
+        exit_reason = _infer_exit_reason_trade(close_trade)
         pnl = float(close_trade.pnl_usd or 0)
         risk_usd = float(close_trade.risk_usd or 0) if close_trade.risk_usd is not None else None
-        result_r = (pnl / risk_usd) if risk_usd and risk_usd > 0 else None
+        if trade_close_has_valid_risk(close_trade):
+            if close_trade.realized_r_multiple is not None:
+                result_r = float(close_trade.realized_r_multiple)
+            else:
+                result_r = pnl / float(close_trade.risk_usd)
+        else:
+            result_r = None
         opened_at = getattr(position, "opened_at", None) or getattr(open_trade, "created_at", None)
         if opened_at and close_trade.created_at and hasattr(close_trade.created_at, "__sub__"):
             try:
@@ -190,7 +212,7 @@ class JournalService:
         if pnl < 0:
             lessons_list.append("Lệnh lỗ; xem lại entry và SL/TP.")
 
-        return self.add_outcome(
+        entry = self.add_outcome(
             db,
             journal.id,
             result_summary=result_summary,
@@ -200,3 +222,13 @@ class JournalService:
             exit_reason=exit_reason,
             mistake_tags=mistake_tags_list if mistake_tags_list else None,
         )
+        if entry:
+            try:
+                from core.brain.evaluation import maybe_record_delayed_p2_evaluation
+                from core.brain.learning_artifacts import maybe_persist_learning_artifact
+
+                maybe_record_delayed_p2_evaluation(db, position, close_trade, open_trade, entry)
+                maybe_persist_learning_artifact(db, position, close_trade, entry)
+            except Exception:
+                pass
+        return entry

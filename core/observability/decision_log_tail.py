@@ -13,11 +13,13 @@ def tail_decision_log_entries(
     limit: int = 120,
     symbols: set[str] | None = None,
     events: set[str] | None = None,
+    always_include_events: set[str] | None = None,
 ) -> list[dict]:
     """
     Last `limit` lines of JSONL (newest at end of file — we read tail of list after full read for small files).
     If symbols given, filter rows where symbol (upper) is in set.
     If events given, filter by event name (e.g. entry_rejected, entry_opened).
+    Rows whose event is in always_include_events bypass the symbol filter (e.g. cycle_execution_summary).
     """
     if not _LOG_PATH.exists():
         return []
@@ -36,13 +38,15 @@ def tail_decision_log_entries(
             continue
     sym_u = {s.strip().upper() for s in symbols} if symbols else None
     ev_l = {e.strip() for e in events} if events else None
+    ai_ev = {e.strip() for e in always_include_events} if always_include_events else set()
     out = []
     for r in rows:
+        ev = str(r.get("event") or "").strip()
         if sym_u is not None:
             su = (r.get("symbol") or "").strip().upper()
-            if su not in sym_u:
+            if ev not in ai_ev and su not in sym_u:
                 continue
-        if ev_l is not None and (r.get("event") or "") not in ev_l:
+        if ev_l is not None and ev not in ev_l:
             continue
         out.append(r)
     return out[-max(1, limit) :]

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "enabled": true,
+  "mean_reversion_only": true,
+  "enabled_strategies": null,
+  "disabled_strategies": ["breakout_momentum", "trend_following"],
+  "comment": "mean_reversion_only=true ignores disabled_strategies. Set mean_reversion_only=false to only use disabled_strategies."
+}

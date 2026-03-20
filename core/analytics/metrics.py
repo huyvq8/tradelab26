@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.portfolio.models import Trade, Position, DailySnapshot
+from core.risk.trade_r_metrics import trade_close_has_valid_risk
 
 
 def _exit_reason_from_note(note: str | None) -> str:
@@ -44,25 +45,63 @@ def compute_metrics(db: Session, portfolio_id: int | None = None) -> dict:
             "total_pnl_usd": 0.0,
             "max_drawdown_pct": 0.0,
             "avg_r_multiple": 0.0,
+            "avg_r_valid_only": 0.0,
+            "valid_r_trade_count": 0,
+            "invalid_r_trade_count": 0,
+            "percent_valid_r_trades": 0.0,
+            "avg_r_trusted": False,
             "sharpe_simulated": 0.0,
             "strategy_accuracy": {},
         }
-    total_pnl = sum(t.pnl_usd for t in trades)
-    wins = [t for t in trades if t.pnl_usd > 0]
-    losses = [t for t in trades if t.pnl_usd < 0]
+    sync_reconcile_trade_count = sum(
+        1 for _t in trades if (getattr(_t, "close_source", "") or "") == "sync_binance_reconcile"
+    )
+    normal_trades = [t for t in trades if (getattr(t, "close_source", "") or "") != "sync_binance_reconcile"]
+    metric_trades = normal_trades if normal_trades else trades
+    total_pnl = sum(t.pnl_usd for t in metric_trades)
+    wins = [t for t in metric_trades if t.pnl_usd > 0]
+    losses = [t for t in metric_trades if t.pnl_usd < 0]
     gross_profit = sum(t.pnl_usd for t in wins)
     gross_loss = abs(sum(t.pnl_usd for t in losses))
-    win_rate = len(wins) / len(trades)
+    win_rate = len(wins) / len(metric_trades)
     profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else (gross_profit if gross_profit > 0 else 0.0)
-    expectancy = total_pnl / len(trades)
+    expectancy = total_pnl / len(metric_trades)
 
-    # Avg R-multiple: R = pnl_usd / risk_usd for trades with risk_usd > 0
-    r_multiples = [
-        t.pnl_usd / t.risk_usd
-        for t in trades
-        if getattr(t, "risk_usd", None) is not None and t.risk_usd and t.risk_usd > 0
-    ]
-    avg_r_multiple = sum(r_multiples) / len(r_multiples) if r_multiples else 0.0
+    # Strict Avg R: realized_r exists + valid risk metadata (close + open snapshot).
+    # Avg R (headline) uses the same set so UI cannot show "Avg R=5" while valid/total=0/332.
+    valid_r_values: list[float] = []
+    invalid_r_trade_count = 0
+    open_trade_by_position: dict[int, Trade] = {}
+    pos_ids = [int(t.position_id) for t in metric_trades if t.position_id]
+    if pos_ids:
+        for ot in db.scalars(
+            select(Trade).where(
+                Trade.action == "open",
+                Trade.position_id.in_(list({int(x) for x in pos_ids})),
+            )
+        ):
+            if ot.position_id:
+                open_trade_by_position[int(ot.position_id)] = ot
+    for t in metric_trades:
+        open_trade = open_trade_by_position.get(int(t.position_id)) if t.position_id else None
+        has_valid_open_snapshot = bool(
+            open_trade
+            and getattr(open_trade, "initial_risk_usd", None) is not None
+            and float(open_trade.initial_risk_usd) > 0
+        )
+        if (
+            trade_close_has_valid_risk(t)
+            and t.realized_r_multiple is not None
+            and has_valid_open_snapshot
+        ):
+            valid_r_values.append(float(t.realized_r_multiple))
+        else:
+            invalid_r_trade_count += 1
+    valid_r_trade_count = len(valid_r_values)
+    avg_r_valid_only = (sum(valid_r_values) / valid_r_trade_count) if valid_r_trade_count else 0.0
+    percent_valid_r_trades = (100.0 * valid_r_trade_count / len(metric_trades)) if metric_trades else 0.0
+    avg_r_trusted = valid_r_trade_count > 0
+    avg_r_multiple = float(avg_r_valid_only) if avg_r_trusted else 0.0
 
     # Sharpe from daily returns (equity curve)
     qs = select(DailySnapshot).order_by(DailySnapshot.snapshot_date)
@@ -94,7 +133,7 @@ def compute_metrics(db: Session, portfolio_id: int | None = None) -> dict:
     # Per-strategy accuracy (win rate by strategy_name)
     strategy_wins: dict[str, int] = {}
     strategy_totals: dict[str, int] = {}
-    for t in trades:
+    for t in metric_trades:
         s = t.strategy_name or "unknown"
         strategy_totals[s] = strategy_totals.get(s, 0) + 1
         if t.pnl_usd > 0:
@@ -109,13 +148,20 @@ def compute_metrics(db: Session, portfolio_id: int | None = None) -> dict:
     }
 
     return {
-        "total_trades": len(trades),
+        "total_trades": len(metric_trades),
+        "total_trades_all": len(trades),
         "win_rate": round(win_rate, 4),
         "profit_factor": round(profit_factor, 4),
         "expectancy_usd": round(expectancy, 2),
         "total_pnl_usd": round(total_pnl, 2),
         "max_drawdown_pct": round(max_dd_pct, 2),
         "avg_r_multiple": round(avg_r_multiple, 4),
+        "avg_r_valid_only": round(avg_r_valid_only, 4),
+        "valid_r_trade_count": int(valid_r_trade_count),
+        "invalid_r_trade_count": int(max(0, invalid_r_trade_count)),
+        "percent_valid_r_trades": round(percent_valid_r_trades, 2),
+        "avg_r_trusted": bool(avg_r_trusted),
+        "sync_reconcile_trade_count": int(sync_reconcile_trade_count),
         "sharpe_simulated": round(sharpe_simulated, 4),
         "strategy_accuracy": strategy_accuracy,
     }
@@ -275,3 +321,4 @@ def tp_reach_analysis(
         "diagnosis": " ".join(diagnosis_parts) if diagnosis_parts else "",
         "suggestion": " ".join(suggestion_parts) if suggestion_parts else "",
     }
+

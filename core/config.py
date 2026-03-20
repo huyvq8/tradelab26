@@ -106,6 +106,11 @@ def save_single_strategy_mode(strategy_name: str) -> None:
     _save_dashboard_overrides_merged({"single_strategy": (strategy_name or "").strip()})
 
 
+def get_dashboard_overrides_path() -> Path:
+    """Path to dashboard_overrides.json (kill switch, Binance toggles, single_strategy)."""
+    return _DASHBOARD_OVERRIDES_PATH
+
+
 _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 

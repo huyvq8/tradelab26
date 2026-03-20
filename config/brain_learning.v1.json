@@ -1,0 +1,13 @@
+{
+  "version": "1",
+  "delayed_evaluation_on_close": true,
+  "persist_learning_artifact": true,
+  "default_artifact_sample_size": 1,
+  "decision_evaluation_defaults": {
+    "decision_quality_score": null,
+    "follow_plan_score": null,
+    "edge_realization_score": null,
+    "thesis_management_quality_score": null,
+    "zone_shift_detection_score": null
+  }
+}

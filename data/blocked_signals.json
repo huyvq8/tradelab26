@@ -1,1102 +1,1400 @@
 [
   {
-    "ts": "2026-03-19T12:40:02.197983Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:02.226321Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:54:29.512479Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 674s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 674.730906,
+      "native_signal": {
+        "setup_quality": 0.6000800000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08171206225681311,
+        "quality_score": 0.6000800000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:40:15.789605Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:15.795223Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:15.820574Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:54:29.532853Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:40:32.523352Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:32.530018Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:32.556128Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:54:46.680618Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 657s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 657.569565,
+      "native_signal": {
+        "setup_quality": 0.6000800000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0739299610894945,
+        "quality_score": 0.6000800000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:40:46.486716Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:46.513352Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:40:46.537087Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:54:46.697196Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:41:03.166823Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:03.170865Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:03.203612Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:09.405603Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 637s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 637.320989,
+      "native_signal": {
+        "setup_quality": 0.6001000000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.07447704280155823,
+        "quality_score": 0.6001000000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:41:15.773445Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:15.778095Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:15.820723Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:09.424891Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:41:32.042052Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:32.065347Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:34.159572Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:14.356937Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 629s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 629.9563969999999,
+      "native_signal": {
+        "setup_quality": 0.6001000000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08171206225681311,
+        "quality_score": 0.6001000000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:41:47.861176Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:47.870133Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:41:47.901197Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:14.376140Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:42:01.546602Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:01.553435Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:01.576775Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:29.880308Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 614s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 614.339048,
+      "native_signal": {
+        "setup_quality": 0.6001000000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.07782101167315165,
+        "quality_score": 0.6001000000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:42:15.762141Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:15.767400Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:15.795850Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:29.900208Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:42:32.759477Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:32.763976Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:32.794198Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:44.153630Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 600s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 600.080792,
+      "native_signal": {
+        "setup_quality": 0.6001000000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08560311284047027,
+        "quality_score": 0.6001000000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:42:47.988821Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:48.010751Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:42:48.030164Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:55:44.172346Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:43:08.734106Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:08.738052Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:08.771996Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:00.193425Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 584s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 584.015056,
+      "native_signal": {
+        "setup_quality": 0.6001000000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.06826575875486696,
+        "quality_score": 0.6001000000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:43:15.759202Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:15.763789Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:15.786727Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:00.211482Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:43:32.111409Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:32.131858Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:33.469448Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:16.239893Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 567s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 567.9704939999999,
+      "native_signal": {
+        "setup_quality": 0.6004250000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0739299610894945,
+        "quality_score": 0.6004250000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:43:46.005885Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:46.011318Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:43:46.877765Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:16.257502Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:44:02.573755Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:44:02.580269Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:44:02.608299Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:29.276756Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 554s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 554.99216,
+      "native_signal": {
+        "setup_quality": 0.6004250000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0739299610894945,
+        "quality_score": 0.6004250000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:44:16.513590Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:44:16.521949Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:44:16.549030Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:29.293854Z",
+    "symbol": "C",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
   },
   {
-    "ts": "2026-03-19T12:44:30.753233Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:44:30.757123Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:44:30.785869Z",
-    "symbol": "WLD",
+    "ts": "2026-03-20T12:56:47.333868Z",
+    "symbol": "BARD",
     "strategy_name": "mean_reversion",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "reason": "Symbol cooldown active (900s); 536s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 536.937514,
+      "native_signal": {
+        "setup_quality": 0.6004250000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09338521400778457,
+        "quality_score": 0.6004250000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:44:46.903643Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:56:47.369668Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:57:00.482424Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 524s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 524.31335,
+      "native_signal": {
+        "setup_quality": 0.6004250000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08489377431906918,
+        "quality_score": 0.6004250000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:44:46.927196Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:57:00.494102Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:57:22.141804Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 504s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 504.359671,
+      "native_signal": {
+        "setup_quality": 0.5986750000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08560311284047027,
+        "quality_score": 0.5986750000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:01.445433Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:57:22.157929Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:57:30.032706Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 494s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 494.220861,
+      "native_signal": {
+        "setup_quality": 0.5986750000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09338521400778457,
+        "quality_score": 0.5986750000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:01.449793Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:57:30.049217Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:57:44.379133Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 479s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 479.847111,
+      "native_signal": {
+        "setup_quality": 0.5986750000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.11673151750972748,
+        "quality_score": 0.5986750000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:19.197383Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:57:44.395588Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:57:59.348057Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 464s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 464.910796,
+      "native_signal": {
+        "setup_quality": 0.5986750000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.10855408560311429,
+        "quality_score": 0.5986750000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:19.201235Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:57:59.356782Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:58:14.629709Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 449s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 449.620667,
+      "native_signal": {
+        "setup_quality": 0.5986750000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09338521400778457,
+        "quality_score": 0.5986750000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:30.765803Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:58:14.643349Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:58:31.587126Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 433s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 433.214662,
+      "native_signal": {
+        "setup_quality": 0.5974600000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.10505836575875602,
+        "quality_score": 0.5974600000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:30.792675Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:58:31.600715Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:58:45.860368Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 419s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 419.788685,
+      "native_signal": {
+        "setup_quality": 0.5974600000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.10894941634241317,
+        "quality_score": 0.5974600000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:48.532855Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:58:45.892467Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:59:01.681324Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 402s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 402.569831,
+      "native_signal": {
+        "setup_quality": 0.5974600000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0951988326848253,
+        "quality_score": 0.5974600000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:45:48.541158Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:59:01.687002Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:59:18.269610Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 386s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 386.00313600000004,
+      "native_signal": {
+        "setup_quality": 0.5974600000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0892813229571989,
+        "quality_score": 0.5974600000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:46:01.382149Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:59:18.282186Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:59:34.775108Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 372s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 372.10087899999996,
+      "native_signal": {
+        "setup_quality": 0.5978450000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08400194552529341,
+        "quality_score": 0.5978450000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:46:01.390464Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:59:34.787685Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:59:44.246448Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 360s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 360.04595400000005,
+      "native_signal": {
+        "setup_quality": 0.5978450000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08949416342412742,
+        "quality_score": 0.5978450000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:46:17.062689Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:59:44.257400Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T12:59:59.265273Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 344s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 344.995859,
+      "native_signal": {
+        "setup_quality": 0.5978450000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08560311284047027,
+        "quality_score": 0.5978450000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:46:17.084613Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T12:59:59.276075Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:00:14.619140Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 329s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 329.62726899999996,
+      "native_signal": {
+        "setup_quality": 0.5978450000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.07808443579766701,
+        "quality_score": 0.5978450000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:47:21.835643Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:00:14.644281Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:00:30.362832Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 313s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 313.900169,
+      "native_signal": {
+        "setup_quality": 0.5981650000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.054191050583660375,
+        "quality_score": 0.5981650000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:47:21.841980Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:00:30.371708Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:00:49.062023Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 298s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 298.33029999999997,
+      "native_signal": {
+        "setup_quality": 0.5981650000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.04023774319066482,
+        "quality_score": 0.5981650000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:47:31.713505Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:00:49.071546Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:01:04.719788Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 281s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 281.54257299999995,
+      "native_signal": {
+        "setup_quality": 0.5981650000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.025899610894942877,
+        "quality_score": 0.5981650000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:47:31.717140Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:01:04.729014Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:01:14.952288Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 269s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 269.835382,
+      "native_signal": {
+        "setup_quality": 0.5981650000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.007782101167318621,
+        "quality_score": 0.5981650000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:47:45.633245Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:01:14.961252Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:01:36.317838Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 250s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 250.20196099999998,
+      "native_signal": {
+        "setup_quality": 0.599835,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.030303030303031196,
+        "quality_score": 0.599835,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:47:45.640852Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:01:36.326281Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:01:45.900110Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 238s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 238.374239,
+      "native_signal": {
+        "setup_quality": 0.599835,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.04166666666666632,
+        "quality_score": 0.599835,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:00.675528Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:01:45.908517Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:01:59.400172Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 224s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 224.85461999999995,
+      "native_signal": {
+        "setup_quality": 0.599835,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.03787878787878794,
+        "quality_score": 0.599835,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:00.694744Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:01:59.407774Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:02:14.367033Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 209s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 209.89777600000002,
+      "native_signal": {
+        "setup_quality": 0.599835,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.04545454545454469,
+        "quality_score": 0.599835,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:16.701605Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:02:14.373947Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:02:29.614509Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 194s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 194.62122899999997,
+      "native_signal": {
+        "setup_quality": 0.599835,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.04057159090908872,
+        "quality_score": 0.599835,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:16.706276Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:02:29.621162Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:02:48.615742Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 176s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 176.38918,
+      "native_signal": {
+        "setup_quality": 0.59968,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.027994696969697506,
+        "quality_score": 0.59968,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:31.281686Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:02:48.621819Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:02:59.414066Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 164s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 164.86547399999995,
+      "native_signal": {
+        "setup_quality": 0.59968,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.03409090909090957,
+        "quality_score": 0.59968,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:31.300099Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:02:59.419430Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:03:18.179888Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 146s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 146.07734900000003,
+      "native_signal": {
+        "setup_quality": 0.59968,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.053030303030301436,
+        "quality_score": 0.59968,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:45.644877Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:03:18.185008Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:03:32.296033Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 131s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 131.918458,
+      "native_signal": {
+        "setup_quality": 0.59968,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09848484848484612,
+        "quality_score": 0.59968,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:48:45.648921Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:03:32.300255Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:03:49.286770Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 117s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 117.30469100000005,
+      "native_signal": {
+        "setup_quality": 0.597295,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09090909090908939,
+        "quality_score": 0.597295,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:00.684894Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:03:49.291023Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:03:59.824666Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 104s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 104.425973,
+      "native_signal": {
+        "setup_quality": 0.597295,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08951931818181853,
+        "quality_score": 0.597295,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:00.689186Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:03:59.828522Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:04:14.565216Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 89s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 89.65515700000003,
+      "native_signal": {
+        "setup_quality": 0.597295,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0903962121212114,
+        "quality_score": 0.597295,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:22.687803Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:04:14.567168Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:04:29.295635Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 74s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 74.97376799999995,
+      "native_signal": {
+        "setup_quality": 0.597295,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09225075757575636,
+        "quality_score": 0.597295,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:22.695832Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:04:29.299689Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:04:45.178609Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 59s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 59.07219699999996,
+      "native_signal": {
+        "setup_quality": 0.5986400000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.09848484848484612,
+        "quality_score": 0.5986400000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:31.419243Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:04:45.182783Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:05:03.480213Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 40s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 40.757971999999995,
+      "native_signal": {
+        "setup_quality": 0.5986400000000001,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.08378712121212137,
+        "quality_score": 0.5986400000000001,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:31.440618Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:05:03.496014Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:25:26.070666Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:25:32.719624Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:25:47.297420Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:26:03.420338Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:26:19.159053Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:26:33.041735Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:26:56.485256Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:27:03.825374Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:28:34.537093Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 847s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 847.362588,
+      "native_signal": {
+        "setup_quality": 0.599615,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.0961409090909083,
+        "quality_score": 0.599615,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:46.297058Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:28:34.541436Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:28:47.135656Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 834s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 834.092208,
+      "native_signal": {
+        "setup_quality": 0.599615,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.10327083333333298,
+        "quality_score": 0.599615,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:49:46.301047Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
+    "ts": "2026-03-20T13:28:47.139467Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
+  },
+  {
+    "ts": "2026-03-20T13:29:05.358307Z",
+    "symbol": "BARD",
+    "strategy_name": "mean_reversion",
+    "reason": "Symbol cooldown active (900s); 815s remaining.",
+    "reason_code": "ENTRY_COOLDOWN",
     "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
+      "strategy": "mean_reversion",
+      "symbol": "BARD",
+      "side": "long",
+      "cooldown_seconds_remaining": 815.905072,
+      "native_signal": {
+        "setup_quality": 0.599615,
+        "entry_style": "mean_reversion_long",
+        "extension_score": 0.1022727272727245,
+        "quality_score": 0.599615,
+        "side": "long",
+        "regime": "risk_off"
+      }
     }
   },
   {
-    "ts": "2026-03-19T12:50:00.652393Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:00.674515Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:16.572560Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:16.581188Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:30.666681Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:30.671006Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:46.254536Z",
-    "symbol": "RIVER",
-    "strategy_name": "breakout_momentum",
-    "reason": "Scale-in rejected: negative_pnl_scale_in_blocked",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "negative_pnl_scale_in_blocked",
-      "side": "long"
-    }
-  },
-  {
-    "ts": "2026-03-19T12:50:46.276304Z",
-    "symbol": "RIVER",
-    "strategy_name": "trend_following",
-    "reason": "Scale-in rejected: signal_score_too_low",
-    "reason_code": "SCALE_IN_REJECTED",
-    "meta": {
-      "detail": "signal_score_too_low",
-      "side": "long"
-    }
+    "ts": "2026-03-20T13:29:05.362489Z",
+    "symbol": "C",
+    "strategy_name": "mean_reversion",
+    "reason": "Maximum concurrent trades reached (bucket scope).",
+    "reason_code": "BUCKET_SCOPE_MAX_CONCURRENT_TRADES",
+    "meta": {}
   }
 ]

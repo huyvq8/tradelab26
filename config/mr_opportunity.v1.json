@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "enabled": true,
+  "top_universe": 120,
+  "min_volume_usd": 1000000,
+  "result_top_n": 12,
+  "oversold_change_24h_max": -6.0,
+  "min_planned_r_multiple": 0.8,
+  "min_notional_usd": 25.0,
+  "volatility_block_reduce_pct": 0.5,
+  "dynamic_watchlist_when_mr_only": true,
+  "dynamic_watchlist_top_n": 6,
+  "pinned_watchlist_limit": 20
+}

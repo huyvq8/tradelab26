@@ -42,10 +42,10 @@ def test_klines_cache_key_and_ttl():
     """Cache klines dùng key (symbol, interval, limit); TTL theo interval."""
     from core.market_data.client import KLINES_CACHE_TTL, DEFAULT_KLINES_TTL
 
-    assert KLINES_CACHE_TTL["1h"] == 60
+    assert KLINES_CACHE_TTL["1h"] == 120
     assert KLINES_CACHE_TTL["5m"] == 30
-    assert KLINES_CACHE_TTL["4h"] == 300
-    assert DEFAULT_KLINES_TTL == 60
+    assert KLINES_CACHE_TTL["4h"] == 600
+    assert DEFAULT_KLINES_TTL == 120
 
 
 def test_derive_regime():

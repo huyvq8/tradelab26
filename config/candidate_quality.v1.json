@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "enabled": true,
+  "min_candidate_r_multiple": 0.8,
+  "hide_low_r_in_dashboard": false
+}

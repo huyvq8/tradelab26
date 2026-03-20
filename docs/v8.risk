@@ -1,0 +1,173 @@
+# Patch tiếp theo: Risk Efficiency Diagnostics + Bucket Reason Codes
+
+Mục tiêu:
+1. Xóa hoàn toàn tình trạng `UNKNOWN_REASON` trong cycle summary / dashboard.
+2. Hiển thị rõ vì sao lệnh bị chặn ở bucket scope.
+3. Đo “risk efficiency” của từng lệnh để biết final size đang dùng bao nhiêu % so với risk ceiling.
+4. Giữ nguyên logic trading hiện tại, chỉ tăng khả năng quan sát + chuẩn hóa reject reason.
+
+---
+
+## 1. Chuẩn hóa reason_code cho bucket / portfolio capacity
+
+### Hiện trạng
+Trong log thực tế đã có message:
+- `Maximum concurrent trades reached (bucket scope).`
+
+Nhưng cycle summary vẫn ghi:
+- `C:UNKNOWN_REASON`
+
+### Yêu cầu
+Chuẩn hóa để mọi reject do capacity / slot / bucket đều có `reason_code` rõ ràng.
+
+### Thêm / dùng các code sau
+- `MAX_CONCURRENT_TRADES_BUCKET`
+- `MAX_OPEN_POSITIONS_REACHED`
+- `MAX_POSITIONS_PER_SYMBOL_REACHED`
+- `ENTRY_COOLDOWN`
+- `DAILY_KILL_SWITCH`
+- `CONSECUTIVE_LOSS_STOP`
+
+### Việc cần làm
+- Rà soát toàn bộ nhánh reject trong `core/orchestration/cycle.py`
+- Mọi nơi return reject phải có:
+  - `reason_code`
+  - `reason`
+  - `blocking_stage`
+- Không được để rơi về blank / None nếu message đã xác định được nguyên nhân.
+- `_reject_row_for_summary(...)` phải map đúng code này.
+- `cycle_execution_summary.rejected_symbols_sample[]` phải luôn có code chuẩn khi reject là deterministic.
+
+---
+
+## 2. Risk efficiency diagnostics cho entry_opened / entry_rejected
+
+### Mục tiêu
+Biết lệnh đang:
+- bị under-risk
+- dùng đúng risk budget
+- hay bị modifiers bóp size quá mạnh
+
+### Thêm field vào payload của `entry_opened` và `entry_rejected`
+- `risk_ceiling_usd`
+- `final_size_usd`
+- `effective_min_trade_usd`
+- `risk_efficiency_ratio` = final_size_usd / risk_ceiling_usd (nếu risk_ceiling_usd > 0)
+- `under_risk_floor_fraction`
+- `under_risk_rescale_applied` (bool)
+- `under_risk_rescale_from_usd`
+- `under_risk_rescale_to_usd`
+
+### Nếu có sizing stage diagnostics thì giữ nguyên, và bổ sung:
+- `base_size_usd`
+- `after_volatility_usd`
+- `after_confidence_usd`
+- `after_regime_usd`
+- `after_dynamic_usd`
+- `after_combo_usd`
+- `after_brain_policy_usd`
+- `after_bot_edge_usd`
+- `post_risk_engine_usd`
+- `post_under_risk_floor_usd`
+- `post_exchange_rounding_usd`
+
+---
+
+## 3. Dashboard: thêm cột / detail “Risk Efficiency”
+
+### Trong bảng decision log / entry_opened / entry_rejected
+Hiển thị ngắn gọn:
+- `final / ceiling = X%`
+- `final vs min = ...`
+- `blocking_stage = ...`
+
+### Trong expander detail
+Hiển thị:
+- risk ceiling
+- final size
+- efficiency ratio
+- under-risk rescale có bật không
+- from → to nếu có rescale
+- các stage USD
+
+### UX mong muốn
+Ví dụ:
+- `15.97 / 24.50 = 65% risk ceiling`
+- `blocked: MAX_CONCURRENT_TRADES_BUCKET`
+- `rescaled under-risk: 12.20 -> 15.97`
+
+---
+
+## 4. Thêm summary nhanh trong cycle log
+
+### Ở dòng [Cycle][exec_diag]
+Bổ sung:
+- `opened_risk_efficiency_avg`
+- `opened_risk_efficiency_sample`
+- `rejected_bucket_count`
+- `rejected_sizing_count`
+
+Ví dụ:
+[Cycle][exec_diag] ... | opened_risk_efficiency_sample=BARD:65% | rejected_bucket_count=1 | rejected_sizing_count=0
+
+---
+
+## 5. Quy tắc phân loại reject
+
+### Update file config/reject_classification.v1.json
+Đảm bảo:
+- `MAX_CONCURRENT_TRADES_BUCKET` -> `policy_reject`
+- `MAX_OPEN_POSITIONS_REACHED` -> `policy_reject`
+- `MAX_POSITIONS_PER_SYMBOL_REACHED` -> `policy_reject`
+- `ENTRY_COOLDOWN` -> `noise_dedupe` hoặc classification hiện tại phù hợp
+- các sizing reject giữ nguyên như đã làm
+
+### Update file config/reject_log_dedupe.v1.json
+- bucket / cooldown reject được dedupe hợp lý
+- không spam log vô ích mỗi cycle
+
+---
+
+## 6. Tests bắt buộc
+
+### Thêm / update test cho:
+1. reject bucket scope phải ra `MAX_CONCURRENT_TRADES_BUCKET`
+2. reject max open positions phải ra `MAX_OPEN_POSITIONS_REACHED`
+3. reject per symbol phải ra `MAX_POSITIONS_PER_SYMBOL_REACHED`
+4. entry_opened có `risk_efficiency_ratio`
+5. under-risk rescale có field from/to đúng
+6. summary không còn `UNKNOWN_REASON` nếu nguyên nhân đã xác định
+
+---
+
+## 7. Điều kiện chấp nhận
+
+### Sau patch:
+1. Không còn `UNKNOWN_REASON` cho case:
+   - Maximum concurrent trades reached (bucket scope)
+2. Dashboard detail phải đọc được:
+   - risk ceiling
+   - final size
+   - efficiency %
+   - blocking stage
+3. entry_opened của BARD phải hiện rõ:
+   - notional mở
+   - risk ceiling
+   - efficiency ratio
+4. Có thể nhìn 1 phát biết:
+   - bot bị chặn vì capacity
+   - hay do sizing
+   - hay do cooldown
+
+---
+
+## 8. Không thay đổi trong patch này
+- Không đổi chiến lược
+- Không đổi điều kiện signal
+- Không đổi SL/TP logic
+- Không đổi min trade config
+- Không đổi bot edge config
+- Chỉ sửa:
+  - observability
+  - reason_code consistency
+  - risk efficiency visibility

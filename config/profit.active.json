@@ -16,9 +16,12 @@
     ],
     "regime_scores": {
       "high_momentum": 1.0,
-      "risk_off": 0.4,
+      "risk_off": 0.6,
       "balanced": 0.85
-    }
+    },
+    "internal_min_trade_usd": 25,
+    "mr_only_min_trade_usd": 12,
+    "under_risk_min_fraction_of_risk_ceiling": 0.65
   },
   "allocation": {
     "max_portfolio_heat_r": 4.0,

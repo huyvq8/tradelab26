@@ -1,0 +1,77 @@
+{
+  "enabled": true,
+  "default_mode": "CORE",
+  "lookback_days_rolling_pf": 30,
+  "min_trades_for_rolling_pf": 8,
+  "tp_profile_scales": {
+    "tight": 0.82,
+    "normal": 1.0,
+    "wide": 1.08
+  },
+  "selection": {
+    "defensive": {
+      "daily_r_max": -1.25,
+      "rolling_pf_max": 0.95,
+      "min_trades_for_pf_rule": 8,
+      "anchor_regimes": ["risk_off"],
+      "brain_market_states": ["SHOCK_UNSTABLE", "RISK_OFF"]
+    },
+    "fast": {
+      "rolling_pf_min": 1.08,
+      "min_trades_for_pf_rule": 12,
+      "anchor_regimes_allow": ["high_momentum", "balanced"],
+      "daily_r_min": -1.8
+    }
+  },
+  "bot_edge_score": {
+    "w_pf": 0.35,
+    "w_regime": 0.25,
+    "w_daily_r": 0.25,
+    "w_consistency": 0.15
+  },
+  "bot_edge_min_by_mode": {
+    "DEFENSIVE": {
+      "default": 0.78,
+      "mean_reversion": 0.6
+    },
+    "CORE": {
+      "default": 0.62,
+      "mean_reversion": 0.6
+    },
+    "FAST": {
+      "default": 0.72
+    }
+  },
+  "modes": {
+    "FAST": {
+      "risk_multiplier": 0.7,
+      "tp_profile": "tight",
+      "max_hold_minutes_fast": 45,
+      "max_hold_minutes_core": 180,
+      "min_signal_score": 0.72,
+      "allow_scale_in": false,
+      "allow_fast_bucket": true,
+      "max_concurrent_trades": 4
+    },
+    "CORE": {
+      "risk_multiplier": 1.0,
+      "tp_profile": "normal",
+      "max_hold_minutes_fast": 90,
+      "max_hold_minutes_core": 0,
+      "min_signal_score": 0.62,
+      "allow_scale_in": true,
+      "allow_fast_bucket": true,
+      "max_concurrent_trades": 3
+    },
+    "DEFENSIVE": {
+      "risk_multiplier": 0.4,
+      "tp_profile": "tight",
+      "max_hold_minutes_fast": 30,
+      "max_hold_minutes_core": 120,
+      "min_signal_score": 0.78,
+      "allow_scale_in": false,
+      "allow_fast_bucket": false,
+      "max_concurrent_trades": 1
+    }
+  }
+}

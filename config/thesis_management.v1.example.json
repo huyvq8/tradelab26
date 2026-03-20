@@ -1,0 +1,41 @@
+{
+  "version": "1",
+  "enabled": true,
+  "force_close_on_invalid": false,
+  "zone_level_thresholds": {
+    "low": 0.35,
+    "elevated": 0.55,
+    "high": 0.75
+  },
+  "profiles": {
+    "default": {
+      "warning_zone_shift": 0.45,
+      "danger_zone_shift": 0.65,
+      "invalid_zone_shift": 0.85,
+      "sl_extension_invalid_mult": 2.0
+    },
+    "breakout_continuation": {
+      "warning_zone_shift": 0.4,
+      "danger_zone_shift": 0.58,
+      "invalid_zone_shift": 0.8,
+      "sl_extension_invalid_mult": 1.85
+    },
+    "trend_hold": {
+      "warning_zone_shift": 0.48,
+      "danger_zone_shift": 0.68,
+      "invalid_zone_shift": 0.88,
+      "sl_extension_invalid_mult": 2.2
+    },
+    "mean_reversion": {
+      "warning_zone_shift": 0.42,
+      "danger_zone_shift": 0.62,
+      "invalid_zone_shift": 0.82,
+      "sl_extension_invalid_mult": 1.75
+    }
+  },
+  "entry_style_to_profile": {
+    "breakout_expansion": "breakout_continuation",
+    "trend_continuation": "trend_hold",
+    "mean_reversion": "mean_reversion"
+  }
+}

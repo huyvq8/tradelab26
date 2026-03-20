@@ -31,13 +31,31 @@ def log_decision(
     symbol: str | None = None,
     strategy_name: str | None = None,
     reason_code: str | None = None,
+    skip_entry_reject_dedupe: bool = False,
 ) -> None:
+    pl = payload or {}
+    if event == "entry_rejected" and not skip_entry_reject_dedupe:
+        try:
+            from core.observability.reject_dedupe import should_emit_entry_reject
+
+            if not should_emit_entry_reject(symbol, strategy_name, reason_code, pl):
+                return
+        except Exception:
+            pass
     try:
         from core.experiments.paths import experiment_labels
 
         exp = experiment_labels()
     except Exception:
         exp = {}
+    reject_bucket = ""
+    if event == "entry_rejected":
+        try:
+            from core.observability.reject_classification import classify_entry_reject
+
+            reject_bucket = classify_entry_reject(reason_code)
+        except Exception:
+            reject_bucket = ""
     row = {
         "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "event": event,
@@ -45,8 +63,10 @@ def log_decision(
         "strategy_name": strategy_name,
         "reason_code": reason_code or "",
         "experiment": exp,
-        "payload": payload or {},
+        "payload": pl,
     }
+    if reject_bucket:
+        row["reject_bucket"] = reject_bucket
     _LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     _rotate_if_huge()
     try:

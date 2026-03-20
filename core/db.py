@@ -160,6 +160,25 @@ def ensure_trades_decision_trace_id_column():
                 raise
 
 
+def ensure_trades_risk_metadata_columns():
+    """Add trades columns for normalized R / entry snapshot / close_source (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    cols = [
+        ("planned_r_multiple", "REAL"),
+        ("initial_risk_usd", "REAL"),
+        ("risk_per_unit", "REAL"),
+        ("notional_usd", "REAL"),
+        ("intended_entry_price", "REAL"),
+        ("intended_stop_loss", "REAL"),
+        ("intended_take_profit", "REAL"),
+        ("close_source", "VARCHAR(40)"),
+        ("realized_r_multiple", "REAL"),
+    ]
+    for name, typ in cols:
+        _sqlite_try_add_column("trades", name, typ)
+
+
 def _sqlite_try_add_column(table: str, column: str, col_type: str) -> None:
     with engine.connect() as conn:
         try:
@@ -172,6 +191,41 @@ def _sqlite_try_add_column(table: str, column: str, col_type: str) -> None:
                 pass
             else:
                 raise
+
+
+def ensure_learning_artifact_governance_columns():
+    """Add governance columns on learning_artifacts (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    cols = [
+        ("confidence", "REAL"),
+        ("sample_size", "INTEGER DEFAULT 1"),
+        ("evidence_json", "TEXT DEFAULT '{}'"),
+        ("promotion_status", "VARCHAR(20) DEFAULT 'none'"),
+        ("promoted_proposal_public_id", "VARCHAR(36)"),
+    ]
+    for name, typ in cols:
+        _sqlite_try_add_column("learning_artifacts", name, typ)
+
+
+def ensure_positions_thesis_columns():
+    """Add thesis / zone-shift columns on positions (SQLite)."""
+    if "sqlite" not in (settings.database_url or "").lower():
+        return
+    cols = [
+        ("thesis_type", "VARCHAR(64)"),
+        ("thesis_version", "VARCHAR(16) DEFAULT '1'"),
+        ("thesis_metadata_json", "TEXT DEFAULT '{}'"),
+        ("thesis_state", "VARCHAR(16) DEFAULT 'NORMAL'"),
+        ("thesis_last_score", "REAL"),
+        ("thesis_last_reason", "VARCHAR(512)"),
+        ("thesis_warning_count", "INTEGER DEFAULT 0"),
+        ("thesis_danger_count", "INTEGER DEFAULT 0"),
+        ("zone_shift_risk_score", "REAL"),
+        ("zone_shift_risk_level", "VARCHAR(16)"),
+    ]
+    for name, typ in cols:
+        _sqlite_try_add_column("positions", name, typ)
 
 
 def ensure_brain_v4_p1_trace_columns():

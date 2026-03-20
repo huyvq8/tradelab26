@@ -44,3 +44,40 @@ def replay_cycle_change_points(db: Session, cycle_id: str) -> dict[str, Any]:
             }
         )
     return {"cycle_id": cycle_id, "change_point_compare": rows_out}
+
+
+def replay_proposal_vs_baseline(
+    baseline_metrics: dict[str, Any],
+    proposal_public_id: str | None = None,
+    proposed_metrics: dict[str, Any] | None = None,
+    *,
+    regime: str | None = None,
+    cluster: str | None = None,
+    fee_slippage_bps: float = 0.0,
+    drawdown_penalty_weight: float = 0.0,
+) -> dict[str, Any]:
+    """
+    Compare hypothetical proposal run vs baseline (caller supplies metrics dicts).
+    Extend later with full bar replay + fee/DD models; format is stable for dashboard/API.
+    """
+    prop = proposed_metrics or {}
+    base = baseline_metrics or {}
+    keys = set(base.keys()) | set(prop.keys())
+    delta: dict[str, Any] = {}
+    for k in keys:
+        if isinstance(base.get(k), (int, float)) and isinstance(prop.get(k), (int, float)):
+            delta[k] = float(prop[k]) - float(base[k])
+    dd_pen = drawdown_penalty_weight * float(prop.get("max_drawdown_pct", 0) or 0)
+    fee_adj = fee_slippage_bps / 10_000.0 * float(prop.get("turnover_notional", 0) or 0)
+    return {
+        "proposal_public_id": proposal_public_id,
+        "regime_filter": regime,
+        "cluster_filter": cluster,
+        "fee_slippage_bps": fee_slippage_bps,
+        "drawdown_penalty_applied": dd_pen,
+        "fee_cost_estimate_usd": fee_adj,
+        "baseline": base,
+        "proposed": prop,
+        "delta": delta,
+        "note": "Pass metrics from your simulation harness; wire to SQL replay in a follow-up.",
+    }

@@ -23,13 +23,17 @@ from core.db import (
     Base,
     engine,
     ensure_brain_v4_p1_trace_columns,
+    ensure_learning_artifact_governance_columns,
+    ensure_positions_thesis_columns,
     ensure_trades_brain_cycle_id_column,
     ensure_trades_decision_trace_id_column,
+    ensure_trades_risk_metadata_columns,
 )
 from core.portfolio.models import Portfolio, Position, Trade, DailySnapshot
 
 try:
     import core.brain.models  # noqa: F401 — register Brain V4 tables before create_all
+    import core.brain.p2_models  # noqa: F401
 except ImportError:
     pass
 from core.journal.models import JournalEntry
@@ -37,8 +41,10 @@ from core.reporting.models import DailyReport
 from core.config import settings
 from core.execution import get_execution_backend
 from core.orchestration.cycle import SimulationCycle
+from core.observability.reject_reason_codes import normalize_entry_reject_reason_code_for_summary
+from core.observability.reject_classification import classify_entry_reject
 from core.reporting.service import DailyReportService
-from core.watchlist import get_watchlist
+from core.watchlist import get_effective_execution_watchlist, get_watchlist
 from core.signals.analysis import build_entry_analysis_from_dict, format_telegram_alert
 
 Base.metadata.create_all(bind=engine)
@@ -63,7 +69,10 @@ try:
     ensure_journal_setup_hedge_columns()
     ensure_trades_brain_cycle_id_column()
     ensure_trades_decision_trace_id_column()
+    ensure_trades_risk_metadata_columns()
     ensure_brain_v4_p1_trace_columns()
+    ensure_positions_thesis_columns()
+    ensure_learning_artifact_governance_columns()
 except Exception:
     pass
 
@@ -114,7 +123,8 @@ def run_cycle_job():
     if not _run_cycle_backend_logged:
         _log_backend_once()
         _run_cycle_backend_logged = True
-    symbols = get_watchlist()
+    watchlist_ctx = get_effective_execution_watchlist()
+    symbols = list(watchlist_ctx.get("effective_watchlist") or [])
     if not symbols:
         print("[Cycle] Watchlist rong -> khong co symbol de quet. Them symbol trong Sidebar.")
     try:
@@ -188,9 +198,79 @@ def run_cycle_job():
             extra = f" | daily_R={dr} daily_PnL_usd={du}"
         if rc is not None:
             extra += f" risk_capital={rc}"
-        cycle_summary = f"[Cycle] symbols={result.get('symbols', 0)} | tin_hieu={n_signals} | mo_lenh={n_opened} | tu_choi={n_rejected}{extra}"
+        effective_symbols = list(watchlist_ctx.get("effective_watchlist") or [])
+        reasons_by_symbol: dict[str, set[str]] = {}
+        for r in rejected:
+            sym = str(r.get("symbol") or "").strip().upper() or "UNKNOWN"
+            code = normalize_entry_reject_reason_code_for_summary(r)
+            reasons_by_symbol.setdefault(sym, set()).add(code)
+        reject_reason_summary = ", ".join(
+            f"{sym}:{'|'.join(sorted(codes))}"
+            for sym, codes in sorted(reasons_by_symbol.items())
+        )
+        reject_suffix = f" [{reject_reason_summary}]" if reject_reason_summary else ""
+        _interval_s = max(5, int(getattr(settings, "cycle_interval_seconds", 10) or 10))
+        _cdur = result.get("cycle_duration_sec")
+        _dur_part = ""
+        if _cdur is not None:
+            _dur_part = f" | cycle_duration_sec={_cdur}"
+            try:
+                _cdur_f = float(_cdur)
+                if _cdur_f >= _interval_s * 0.85:
+                    _ow = (
+                        f"[Cycle] WARN cycle_duration_sec={_cdur_f} is >=85% of cycle_interval_seconds={_interval_s} "
+                        "(APScheduler max_instances=1 may skip the next tick)."
+                    )
+                    logger.warning(_ow)
+                    print(_ow)
+            except (TypeError, ValueError):
+                pass
+        cycle_summary = (
+            f"[Cycle] symbols={result.get('symbols', 0)}"
+            f" | manual_watchlist_count={watchlist_ctx.get('manual_watchlist_count', 0)}"
+            f" | dynamic_shortlist_count={watchlist_ctx.get('dynamic_shortlist_count', 0)}"
+            f" | effective_execution_watchlist_count={watchlist_ctx.get('effective_execution_watchlist_count', 0)}"
+            f" | effective_execution_symbols={','.join(effective_symbols)}"
+            f" | tin_hieu={n_signals} | mo_lenh={n_opened} | tu_choi={n_rejected}{reject_suffix}{extra}{_dur_part}"
+        )
         logger.info(cycle_summary)
         print(cycle_summary)
+        _scope = result.get("strategy_scope_in_cycle") or []
+        _eval_cand = result.get("evaluated_candidate_symbols") or []
+        _rows_after_filter = result.get("candidate_rows_after_strategy_filter")
+        _sig_syms = result.get("signals_fired_symbols") or []
+        _opened_syms = result.get("opened_symbols") or []
+        _opened_positions = result.get("opened_positions") or []
+        _eff_rows = []
+        for _op in _opened_positions:
+            _ratio = _op.get("risk_efficiency_ratio")
+            if isinstance(_ratio, (int, float)):
+                _eff_rows.append((str(_op.get("symbol") or ""), float(_ratio)))
+        _eff_avg = (sum(v for _, v in _eff_rows) / len(_eff_rows)) if _eff_rows else None
+        _eff_sample = ",".join(f"{sym}:{round(val * 100, 1)}%" for sym, val in _eff_rows[:5]) if _eff_rows else "none"
+        _rej_bucket_count = 0
+        _rej_sizing_count = 0
+        for _r in rejected:
+            _rc = normalize_entry_reject_reason_code_for_summary(_r)
+            _b = classify_entry_reject(_rc)
+            if _b == "policy_reject":
+                _rej_bucket_count += 1
+            elif _b == "sizing_reject":
+                _rej_sizing_count += 1
+        exec_diag = (
+            f"[Cycle][exec_diag] strategy_scope_in_cycle={_scope}"
+            f" | evaluated_candidate_symbols={_eval_cand}"
+            f" | candidate_rows_after_strategy_filter={_rows_after_filter}"
+            f" | signals_fired_symbols={_sig_syms}"
+            f" | rejected_symbols_with_reasons={reject_reason_summary or 'none'}"
+            f" | opened_symbols={_opened_syms}"
+            f" | opened_risk_efficiency_avg={round(_eff_avg * 100, 1) if _eff_avg is not None else 'n/a'}%"
+            f" | opened_risk_efficiency_sample={_eff_sample}"
+            f" | rejected_bucket_count={_rej_bucket_count}"
+            f" | rejected_sizing_count={_rej_sizing_count}"
+        )
+        logger.info(exec_diag)
+        print(exec_diag)
         if skipped_already_open:
             # Gộp theo symbol để tránh spam: 1 dòng/symbol/cycle (vd. "SIREN: da co 1/1 vi the, bo qua 2 tin hieu (trend_following, breakout_momentum)")
             by_symbol = {}

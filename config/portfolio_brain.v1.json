@@ -1,0 +1,12 @@
+{
+  "version": "1",
+  "enabled": true,
+  "persist_state_each_review_tick": true,
+  "stress": {
+    "stretched_exposure_pct_equity": 0.45,
+    "overexposed_exposure_pct_equity": 0.65,
+    "defensive_unrealized_loss_pct_equity": 0.02,
+    "shock_drawdown_pct_day": 0.04
+  },
+  "warning_danger_ratio_for_stretch": 0.35
+}

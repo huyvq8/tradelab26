@@ -1,0 +1,46 @@
+{
+  "version": "1",
+  "enabled": true,
+  "dedupe_key_includes_candle_id": true,
+  "default_cooldown_seconds": 45,
+  "per_code_cooldown_seconds": {
+    "BOT_EDGE_MIN_SCORE": 90,
+    "PRE_SIZING_BELOW_MIN_EXECUTABLE": 300,
+    "ENTRY_LOW_VOLUME_SPIKE": 90,
+    "ENTRY_TIMING_COOLDOWN": 60,
+    "ENTRY_COOLDOWN": 60,
+    "CONTEXT_GATE_DISTANCE_FROM_HIGH": 75,
+    "CONTEXT_GATE_BARS_SINCE_HIGH": 75,
+    "CONTEXT_GATE_PULLBACK": 75,
+    "CONTEXT_GATE_EXTENSION": 75
+  },
+  "never_dedupe_codes": [
+    "SIZE_TOO_SMALL_POST_SIZING",
+    "BELOW_EXCHANGE_MIN_NOTIONAL",
+    "BELOW_MIN_QTY",
+    "ZERO_AFTER_STEP_ROUNDING",
+    "BELOW_INTERNAL_MIN_TRADE_USD",
+    "REDUCED_TOO_MUCH_BY_POLICY",
+    "SIZING_CLASSIFY_UNEXPECTED_GE_MIN",
+    "COMBO_BLOCKED_EDGE",
+    "BRAIN_V4_ENTRY_STRICTNESS",
+    "BRAIN_V4_ENTRY_SENSITIVITY",
+    "SCALE_IN_REJECTED",
+    "STRUCTURAL_LEVELS",
+    "SIGNAL_LEVELS_ATR_CAP"
+  ],
+  "state_change_key_paths": {
+    "ENTRY_LOW_VOLUME_SPIKE": [
+      "confirmation_volume_spike_ratio",
+      "confirmation_body_range_ratio"
+    ],
+    "ENTRY_TIMING_COOLDOWN": ["cooldown_seconds_remaining"]
+  },
+  "default_state_key_paths": [
+    "confirmation_volume_spike_ratio",
+    "confirmation_body_range_ratio",
+    "cooldown_seconds_remaining",
+    "distance_from_recent_high_pct",
+    "extension_score"
+  ]
+}

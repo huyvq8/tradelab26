@@ -16,7 +16,10 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.portfolio.models import Portfolio, Position, Trade
+from core.risk.daily_r import MIN_RISK_USD_FOR_R_AGGREGATION
+from core.risk.trade_r_metrics import attach_open_trade_risk_fields
 from core.portfolio.capital_split import normalize_bucket
+from core.profit.thesis_profiles import apply_thesis_fields_to_position
 from core.strategies.base import StrategySignal
 from core.execution.binance_user_stream import (
     RECONCILE_INTERVAL,
@@ -78,6 +81,21 @@ def _round_quantity_to_lot_size(qty: float, min_qty: float, step_size: str) -> t
     else:
         out_str = str(int(valid_f))
     return (valid_f, out_str)
+
+
+def try_exchange_lot_for_executor(executor: object, symbol: str) -> dict | None:
+    """
+    If executor is Binance Futures, return LOT_SIZE / minNotional dict for dashboard + sizing diagnostics.
+    Otherwise None (paper / other backends).
+    """
+    if type(executor).__name__ != "BinanceFuturesExecutor":
+        return None
+    try:
+        symbol_b = _binance_symbol(symbol)
+        base_url = getattr(executor, "base_url", "") or ""
+        return _get_lot_size(base_url, symbol_b)
+    except Exception:
+        return None
 
 
 def _get_lot_size(base_url: str, symbol_b: str) -> dict:
@@ -330,6 +348,7 @@ class BinanceFuturesExecutor:
             entry_regime=(getattr(signal, "regime", None) or None),
             capital_bucket=bucket,
         )
+        apply_thesis_fields_to_position(position, signal)
         db.add(position)
         db.flush()
         use_trailing = (
@@ -422,6 +441,13 @@ class BinanceFuturesExecutor:
         )
         db.add(trade)
         db.flush()
+        attach_open_trade_risk_fields(
+            trade,
+            entry_price=avg_price,
+            quantity=quantity_saved,
+            signal=signal,
+        )
+        db.flush()
         base = getattr(self, "base_url", "") or ""
         _BALANCE_CACHE.pop(base, None)  # refresh balance sau khi mở lệnh
         return position
@@ -498,6 +524,8 @@ class BinanceFuturesExecutor:
         if sl_for_r is None:
             sl_for_r = position.stop_loss
         risk_usd = abs(position.entry_price - sl_for_r) * exec_qty if sl_for_r is not None else None
+        if risk_usd is not None and float(risk_usd) < MIN_RISK_USD_FOR_R_AGGREGATION:
+            risk_usd = None
         bpart = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,

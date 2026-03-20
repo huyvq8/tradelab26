@@ -1,0 +1,34 @@
+{
+  "version": "1",
+  "good_reject_prefixes": ["CONTEXT_GATE_", "ENTRY_LOW_", "ENTRY_TIMING_", "VOLATILITY_", "ENTRY_CONTEXT_"],
+  "good_reject_codes": [
+    "STRUCTURAL_LEVELS",
+    "SIGNAL_LEVELS_ATR_CAP",
+    "ENTRY_COOLDOWN"
+  ],
+  "policy_reject_prefixes": ["BRAIN_V4_", "CORRELATION_"],
+  "policy_reject_codes": [
+    "COMBO_BLOCKED_EDGE",
+    "SCALE_IN_REJECTED",
+    "COMBO_BLOCKED",
+    "BOT_EDGE_MIN_SCORE",
+    "MAX_CONCURRENT_TRADES_BUCKET",
+    "MAX_CONCURRENT_TRADES",
+    "MAX_OPEN_POSITIONS_REACHED",
+    "MAX_POSITIONS_PER_SYMBOL_REACHED",
+    "CONSECUTIVE_LOSS_STOP",
+    "DAILY_KILL_SWITCH"
+  ],
+  "sizing_reject_codes": [
+    "SIZE_TOO_SMALL_POST_SIZING",
+    "BELOW_EXCHANGE_MIN_NOTIONAL",
+    "BELOW_MIN_QTY",
+    "ZERO_AFTER_STEP_ROUNDING",
+    "BELOW_INTERNAL_MIN_TRADE_USD",
+    "REDUCED_TOO_MUCH_BY_POLICY",
+    "SIZING_CLASSIFY_UNEXPECTED_GE_MIN",
+    "PRE_SIZE_BELOW_MIN",
+    "PRE_SIZING_BELOW_MIN_EXECUTABLE"
+  ],
+  "default_bucket": "good_reject"
+}

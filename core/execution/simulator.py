@@ -9,6 +9,9 @@ from sqlalchemy import select
 from core.config import settings
 from core.portfolio.models import Portfolio, Position, Trade
 from core.portfolio.capital_split import normalize_bucket
+from core.profit.thesis_profiles import apply_thesis_fields_to_position
+from core.risk.daily_r import MIN_RISK_USD_FOR_R_AGGREGATION
+from core.risk.trade_r_metrics import attach_open_trade_risk_fields, infer_close_source_from_note
 from core.strategies.base import StrategySignal
 
 
@@ -43,6 +46,7 @@ class PaperExecutionSimulator:
             entry_regime=(getattr(signal, "regime", None) or None),
             capital_bucket=bucket,
         )
+        apply_thesis_fields_to_position(position, signal)
         db.add(position)
         db.flush()
         fee = size_usd * settings.sim_fee_bps / 10_000
@@ -62,10 +66,23 @@ class PaperExecutionSimulator:
         )
         db.add(trade)
         db.flush()
+        attach_open_trade_risk_fields(
+            trade,
+            entry_price=entry_price,
+            quantity=quantity,
+            signal=signal,
+        )
+        db.flush()
         return position
 
     def close_position(
-        self, db: Session, position: Position, exit_price: float, note: str = ""
+        self,
+        db: Session,
+        position: Position,
+        exit_price: float,
+        note: str = "",
+        *,
+        close_source: str | None = None,
     ) -> Trade:
         direction = 1 if position.side == "long" else -1
         gross_pnl = (
@@ -103,6 +120,12 @@ class PaperExecutionSimulator:
             sl_for_r = position.stop_loss
         if sl_for_r is not None:
             risk_usd = abs(position.entry_price - sl_for_r) * position.quantity
+        if risk_usd is not None and float(risk_usd) < MIN_RISK_USD_FOR_R_AGGREGATION:
+            risk_usd = None
+        cs = (close_source or "").strip() or infer_close_source_from_note(note)
+        realized_r = None
+        if risk_usd is not None and float(risk_usd) > 0:
+            realized_r = round(float(pnl_net) / float(risk_usd), 4)
         bclose = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
@@ -116,6 +139,8 @@ class PaperExecutionSimulator:
             fee_usd=exit_fee,
             pnl_usd=round(pnl_net, 4),
             risk_usd=round(risk_usd, 4) if risk_usd is not None else None,
+            close_source=cs,
+            realized_r_multiple=realized_r,
             note=note,
             capital_bucket=bclose,
         )
@@ -158,6 +183,8 @@ class PaperExecutionSimulator:
             sl_for_r = position.stop_loss
         if sl_for_r is not None:
             risk_usd = abs(position.entry_price - sl_for_r) * reduce_quantity
+        if risk_usd is not None and float(risk_usd) < MIN_RISK_USD_FOR_R_AGGREGATION:
+            risk_usd = None
         bpart = normalize_bucket(getattr(position, "capital_bucket", None))
         trade = Trade(
             portfolio_id=position.portfolio_id,
