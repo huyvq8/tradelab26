@@ -36,6 +36,13 @@ def load_profit_config() -> dict:
     return base
 
 
+def load_profit_config_resolved() -> dict:
+    """Backward compatible: implementation in `core.profit.profit_config_resolve`."""
+    from core.profit.profit_config_resolve import load_profit_config_resolved as _resolved
+
+    return _resolved()
+
+
 @dataclass
 class VolatilityGuardResult:
     allow_trade: bool

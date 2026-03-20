@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "enabled": true,
+  "cooldown_seconds": 240,
+  "comment": "Cùng symbol+strategy+entry/stop làm tròn: không gửi Telegram lặp trong cửa sổ cooldown"
+}

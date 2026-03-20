@@ -5,6 +5,7 @@ from core.profit.volatility_guard import (
     check_volatility_guard,
     load_profit_config,
 )
+from core.profit.profit_config_resolve import load_profit_config_resolved
 from core.profit.position_sizer import (
     apply_dynamic_sizing,
     get_confidence_multiplier,
@@ -27,6 +28,7 @@ __all__ = [
     "VolatilityGuardResult",
     "check_volatility_guard",
     "load_profit_config",
+    "load_profit_config_resolved",
     "apply_dynamic_sizing",
     "get_confidence_multiplier",
     "get_regime_score",

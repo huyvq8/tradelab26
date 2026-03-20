@@ -26,7 +26,9 @@ from core.regime.detector import derive_regime
 from core.strategies.implementations import build_strategy_set
 from core.risk.engine import RiskEngine, RiskDecision, effective_risk_capital_usd
 from core.risk.daily_r import MIN_RISK_USD_FOR_R_AGGREGATION, sum_daily_realized_r_from_trades
-from core.profit.volatility_guard import check_volatility_guard, load_profit_config
+from core.profit.volatility_guard import check_volatility_guard
+from core.profit.profit_config_resolve import load_profit_config_resolved
+from core.execution.executor_kind import is_live_binance_executor
 from core.profit.bot_edge_controller import (
     apply_tp_profile_to_signal,
     compute_bot_edge_decision,
@@ -84,6 +86,12 @@ from core.risk.sizing_reject_diagnosis import (
     exchange_qty_preview,
 )
 from core.risk.under_risk_sizing import apply_risk_ceiling_and_under_risk_floor
+from core.risk.entry_guardrails import (
+    apply_notional_cap,
+    evaluate_stop_floor_r_guard,
+    mr_long_has_reversal_confirmation,
+    resolve_notional_cap_usd,
+)
 from core.execution.binance_futures import try_exchange_lot_for_executor
 from core.risk.trade_r_metrics import risk_usd_for_full_close, planned_r_multiple
 from core.risk.candidate_quality import load_candidate_quality_config
@@ -106,6 +114,22 @@ from core.brain.types import BrainV4CycleContext
 # Cache token features + profile + routing 120s — log chỉ khi refresh (document/request: giảm TOKEN_FEATURES_BUILT mỗi 10s).
 _TOKEN_INTEL_CACHE: dict[str, tuple[float, dict, "TokenProfile", object]] = {}
 _TOKEN_INTEL_TTL = 120.0
+
+
+def _close_position_with_optional_paper(executor, paper, db, pos, price, note: str):
+    """Live Binance: không fallback Paper khi đóng thất bại (tránh DB lệch sàn)."""
+    try:
+        return executor.close_position(db, pos, price, note=note)
+    except Exception as e:
+        if is_live_binance_executor(executor):
+            logging.getLogger(__name__).warning(
+                "close_position failed (live) symbol=%s: %s", getattr(pos, "symbol", "?"), e
+            )
+            return None
+        try:
+            return paper.close_position(db, pos, price, note=note)
+        except Exception:
+            return None
 
 
 def _build_sizing_trace_payload(
@@ -762,7 +786,8 @@ class SimulationCycle:
         all_strategy_names = [s.name for s in self.strategies]
         class_cfg = load_classification_config()
         # Phase 3 v6: strategy weights và allocation (một lần mỗi cycle)
-        profit_cfg_cycle = load_profit_config()
+        profit_cfg_cycle = load_profit_config_resolved()
+        guardrails_cfg = (profit_cfg_cycle.get("entry_guardrails") or {})
         eff_min_trade_usd = effective_internal_min_trade_usd(
             profit_cfg_cycle,
             single_strategy_mode=single_strategy,
@@ -1103,6 +1128,119 @@ class SimulationCycle:
                         if too_close:
                             skipped_already_open.append(f"{symbol} ({signal.strategy_name}) — gia qua sat entry vi the co (can >= {min_dist_pct*100:.2f}%), tranh trung muc gia")
                             continue
+                _stop_guard = evaluate_stop_floor_r_guard(
+                    signal,
+                    guard_cfg=guardrails_cfg,
+                    regime=regime,
+                    min_candidate_r=float(min_candidate_r),
+                )
+                if _stop_guard.get("stop_floor_applied"):
+                    logging.getLogger(__name__).info(
+                        "STOP_DISTANCE_FLOOR_APPLIED symbol=%s strategy=%s old_sl=%s new_sl=%s old_pct=%s new_pct=%s old_r=%s new_r=%s",
+                        symbol,
+                        signal.strategy_name,
+                        _stop_guard.get("stop_floor", {}).get("old_stop_loss"),
+                        _stop_guard.get("stop_floor", {}).get("new_stop_loss"),
+                        _stop_guard.get("stop_floor", {}).get("old_pct"),
+                        _stop_guard.get("stop_floor", {}).get("new_pct"),
+                        _stop_guard.get("planned_r_old"),
+                        _stop_guard.get("planned_r_new"),
+                    )
+                    log_decision(
+                        "entry_adjusted",
+                        {
+                            "side": signal.side or "long",
+                            "blocking_stage": "pre_risk_stop_floor",
+                            "entry_price": float(signal.entry_price),
+                            "stop_price_old": _stop_guard.get("stop_floor", {}).get("old_stop_loss"),
+                            "stop_price_new": _stop_guard.get("stop_floor", {}).get("new_stop_loss"),
+                            "stop_distance_pct_old": _stop_guard.get("stop_floor", {}).get("old_pct"),
+                            "stop_distance_pct_new": _stop_guard.get("stop_floor", {}).get("new_pct"),
+                            "planned_r_old": _stop_guard.get("planned_r_old"),
+                            "planned_r_new": _stop_guard.get("planned_r_new"),
+                        },
+                        symbol=symbol,
+                        strategy_name=signal.strategy_name,
+                        reason_code="STOP_DISTANCE_FLOOR_APPLIED",
+                    )
+                if _stop_guard.get("reject_low_r_after_floor"):
+                    _pl_stop = {
+                        "side": signal.side or "long",
+                        "blocking_stage": "stop_distance_floor_then_planned_r_check",
+                        "entry_price": float(signal.entry_price),
+                        "stop_price_old": _stop_guard.get("stop_floor", {}).get("old_stop_loss"),
+                        "stop_price_new": _stop_guard.get("stop_floor", {}).get("new_stop_loss"),
+                        "stop_distance_pct_old": _stop_guard.get("stop_floor", {}).get("old_pct"),
+                        "stop_distance_pct_new": _stop_guard.get("stop_floor", {}).get("new_pct"),
+                        "planned_r_old": _stop_guard.get("planned_r_old"),
+                        "planned_r_new": _stop_guard.get("planned_r_new"),
+                        "min_candidate_r_multiple": round(float(min_candidate_r), 4),
+                    }
+                    _cid_sg = _decision_candle_id_1h(klines_full)
+                    if _cid_sg:
+                        _pl_stop["candle_id"] = _cid_sg
+                    log_decision(
+                        "entry_rejected",
+                        _pl_stop,
+                        symbol=symbol,
+                        strategy_name=signal.strategy_name,
+                        reason_code="STOP_DISTANCE_TOO_TIGHT",
+                    )
+                    rejected_signals.append(
+                        {
+                            "symbol": signal.symbol,
+                            "strategy_name": signal.strategy_name,
+                            "reason": "Stop distance floor applied but planned R became too low.",
+                            "reason_code": "STOP_DISTANCE_TOO_TIGHT",
+                            "meta": _pl_stop,
+                        }
+                    )
+                    continue
+                _mr_rev_diag_at_entry: dict | None = None
+                if (
+                    (signal.strategy_name or "") == "mean_reversion"
+                    and (signal.side or "") == "long"
+                    and bool((guardrails_cfg.get("mr_reversal_confirmation") or {}).get("enabled", True))
+                ):
+                    _ok_rev, _rev_diag = mr_long_has_reversal_confirmation(
+                        klines_full,
+                        cfg=(guardrails_cfg.get("mr_reversal_confirmation") or {}),
+                    )
+                    if not _ok_rev:
+                        _pr_mr = planned_r_multiple(signal)
+                        _pl_rev = {
+                            "side": signal.side or "long",
+                            "blocking_stage": "mr_reversal_confirmation",
+                            "entry_price": float(signal.entry_price),
+                            "reversal_diagnostics": _rev_diag,
+                            "stop_distance_pct": round(
+                                abs(float(signal.entry_price) - float(signal.stop_loss or 0))
+                                / max(float(signal.entry_price), 1e-9),
+                                6,
+                            ),
+                            "planned_r_multiple": round(float(_pr_mr), 4) if _pr_mr is not None else None,
+                        }
+                        _cid_rev = _decision_candle_id_1h(klines_full)
+                        if _cid_rev:
+                            _pl_rev["candle_id"] = _cid_rev
+                        log_decision(
+                            "entry_rejected",
+                            _pl_rev,
+                            symbol=symbol,
+                            strategy_name=signal.strategy_name,
+                            reason_code="MR_NO_REVERSAL_CONFIRMATION",
+                        )
+                        rejected_signals.append(
+                            {
+                                "symbol": signal.symbol,
+                                "strategy_name": signal.strategy_name,
+                                "reason": "Oversold MR candidate has no reversal confirmation yet.",
+                                "reason_code": "MR_NO_REVERSAL_CONFIRMATION",
+                                "meta": _pl_rev,
+                            }
+                        )
+                        continue
+                    _mr_rev_diag_at_entry = _rev_diag if isinstance(_rev_diag, dict) else {}
                 planned_r = planned_r_multiple(signal)
                 if planned_r is not None and planned_r < min_candidate_r:
                     low_r_payload = {
@@ -1142,7 +1280,7 @@ class SimulationCycle:
                     "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
                 })
                 # Phase 1 v6: Volatility guard — block hoặc giảm size khi ATR/volatility cao
-                profit_cfg = load_profit_config()
+                profit_cfg = profit_cfg_cycle
                 try:
                     klines_1h = get_klines_1h(symbol, limit=20)
                 except Exception:
@@ -1350,6 +1488,41 @@ class SimulationCycle:
                         signal.strategy_name,
                         _under_risk_meta["under_risk_rescale"],
                     )
+                _cap_usd = resolve_notional_cap_usd(
+                    guard_cfg=guardrails_cfg,
+                    strategy_name=str(signal.strategy_name or ""),
+                    regime=str(regime or ""),
+                    equity_usd=float(risk_capital_usd),
+                )
+                _cap_res = apply_notional_cap(float(final_size_usd), _cap_usd)
+                if _cap_res.get("applied"):
+                    final_size_usd = float(_cap_res["final_size_usd"])
+                    post_modifier_usd = float(final_size_usd)
+                    logging.getLogger(__name__).info(
+                        "NOTIONAL_CAPPED_BY_POLICY symbol=%s strategy=%s old_size=%s cap_usd=%s final_size=%s",
+                        symbol,
+                        signal.strategy_name,
+                        _cap_res.get("old_size_usd"),
+                        _cap_res.get("cap_usd"),
+                        final_size_usd,
+                    )
+                    log_decision(
+                        "entry_adjusted",
+                        {
+                            "side": signal.side or "long",
+                            "blocking_stage": "post_risk_notional_cap",
+                            "risk_ceiling_usd": round(float(post_risk_engine_usd), 4),
+                            "final_size_usd": round(float(final_size_usd), 4),
+                            "effective_min_trade_usd": round(float(eff_min_trade_usd), 4),
+                            "final_notional_pct_of_equity": round(
+                                float(final_size_usd) / max(float(risk_capital_usd), 1e-9), 6
+                            ),
+                            "notional_cap": _cap_res,
+                        },
+                        symbol=symbol,
+                        strategy_name=signal.strategy_name,
+                        reason_code="NOTIONAL_CAPPED_BY_POLICY",
+                    )
                 if final_size_usd < eff_min_trade_usd:
                     logging.getLogger(__name__).info(
                         "REJECTED_SIGNAL symbol=%s strategy=%s reason=post_sizing_below_min final_size_usd=%s min=%s",
@@ -1427,6 +1600,9 @@ class SimulationCycle:
                         mod_breakdown=mod_breakdown,
                         exchange_preview=_ex_prev,
                     )
+                    if _cap_res.get("applied") and float(post_modifier_usd) < float(eff_min_trade_usd):
+                        _s_code = "NOTIONAL_CAPPED_BY_POLICY"
+                        _s_detail["blocking_stage"] = "notional_cap_after_risk_sizing"
                     sizing_trace["exchange_qty_preview"] = _ex_prev
                     sizing_trace["sizing_reject_classification"] = {"reason_code": _s_code, **_s_detail}
                     rej_payload = {
@@ -1436,6 +1612,8 @@ class SimulationCycle:
                         "native_signal": _native_signal_log_slice(signal),
                         "sizing_reject_reason_code": _s_code,
                     }
+                    if _cap_res.get("applied"):
+                        rej_payload["notional_cap"] = _cap_res
                     rej_payload.update(
                         _build_risk_efficiency_fields(
                             final_size_usd=float(post_modifier_usd),
@@ -1492,6 +1670,8 @@ class SimulationCycle:
                     )
                     if _s_code == "REDUCED_TOO_MUCH_BY_POLICY" and rej_payload.get("policy_squeeze_detail"):
                         _rej_meta["policy_squeeze_detail"] = rej_payload["policy_squeeze_detail"]
+                    if _cap_res.get("applied"):
+                        _rej_meta["notional_cap"] = _cap_res
                     rejected_signals.append({
                         "symbol": signal.symbol,
                         "strategy_name": signal.strategy_name,
@@ -1556,13 +1736,46 @@ class SimulationCycle:
                     risk_score=risk_score,
                     timeframe=getattr(settings, "default_timeframe", "5m") or "5m",
                 )
+                _mc = dict(entry_ctx.get("market_context") or {})
+                _pr_entry = planned_r_multiple(signal)
+                _rev_flags = (
+                    (_mr_rev_diag_at_entry or {}).get("flags")
+                    if isinstance(_mr_rev_diag_at_entry, dict)
+                    else None
+                )
+                _rev_types = (
+                    [str(k) for k, v in _rev_flags.items() if v]
+                    if isinstance(_rev_flags, dict)
+                    else []
+                )
+                _mc["guardrail_snapshot"] = {
+                    "regime": regime,
+                    "stop_floor_applied": bool(_stop_guard.get("stop_floor_applied")),
+                    "notional_cap_applied": bool(_cap_res.get("applied")),
+                    "stop_distance_pct": round(
+                        abs(float(signal.entry_price) - float(signal.stop_loss or 0))
+                        / max(float(signal.entry_price), 1e-9),
+                        6,
+                    ),
+                    "final_notional_pct_of_equity": round(
+                        float(final_size_usd) / max(float(risk_capital_usd), 1e-9), 6
+                    ),
+                    "planned_r_at_entry": round(float(_pr_entry), 4) if _pr_entry is not None else None,
+                    "mr_reversal_diagnostics": _mr_rev_diag_at_entry,
+                    "mr_reversal_confirmation_types": _rev_types,
+                    "risk_efficiency_ratio": (
+                        round(float(final_size_usd) / float(post_risk_engine_usd), 6)
+                        if float(post_risk_engine_usd) > 0
+                        else None
+                    ),
+                }
                 self.journal.create_entry(
                     db, signal, decision.reason,
                     setup_score=signal.confidence * 100,
                     trade_id=open_trade.id if open_trade else None,
                     side=signal.side,
                     reasons=entry_ctx.get("reasons"),
-                    market_context=entry_ctx.get("market_context"),
+                    market_context=_mc,
                     risk_score=entry_ctx.get("risk_score"),
                     timeframe=entry_ctx.get("timeframe"),
                     token_type=profile.token_type if profile else None,
@@ -1584,9 +1797,22 @@ class SimulationCycle:
                     "stop_loss": signal.stop_loss,
                     "take_profit": signal.take_profit,
                     "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
+                    "stop_distance_pct": round(
+                        abs(float(signal.entry_price) - float(signal.stop_loss)) / max(float(signal.entry_price), 1e-9),
+                        6,
+                    ),
+                    "final_notional_pct_of_equity": round(float(final_size_usd) / max(float(risk_capital_usd), 1e-9), 6),
                 }
                 if _under_risk_meta.get("under_risk_rescale"):
                     _opened_payload["under_risk_rescale"] = _under_risk_meta["under_risk_rescale"]
+                if _stop_guard.get("stop_floor_applied"):
+                    _opened_payload["stop_floor_applied"] = True
+                    _opened_payload["stop_floor_detail"] = _stop_guard.get("stop_floor")
+                if _cap_res.get("applied"):
+                    _opened_payload["notional_cap"] = _cap_res
+                if _mr_rev_diag_at_entry:
+                    _opened_payload["reversal_diagnostics"] = _mr_rev_diag_at_entry
+                    _opened_payload["mr_reversal_passed"] = True
                 _opened_payload.update(
                     _build_risk_efficiency_fields(
                         final_size_usd=float(final_size_usd),
@@ -1866,7 +2092,7 @@ class SimulationCycle:
                                             "confidence": signal.confidence,
                                             "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
                                         })
-                                        profit_cfg = load_profit_config()
+                                        profit_cfg = profit_cfg_cycle
                                         vol_result = check_volatility_guard(symbol, quote, klines_1h_short, config=profit_cfg)
                                         if vol_result.allow_trade:
                                             available_cash = portfolio.cash_usd
@@ -2026,6 +2252,43 @@ class SimulationCycle:
                                                             signal.strategy_name,
                                                             _under_risk_meta_s["under_risk_rescale"],
                                                         )
+                                                    _cap_usd_s = resolve_notional_cap_usd(
+                                                        guard_cfg=guardrails_cfg,
+                                                        strategy_name=str(signal.strategy_name or ""),
+                                                        regime=str(regime or ""),
+                                                        equity_usd=float(risk_capital_usd),
+                                                    )
+                                                    _cap_res_s = apply_notional_cap(float(final_size_usd), _cap_usd_s)
+                                                    if _cap_res_s.get("applied"):
+                                                        final_size_usd = float(_cap_res_s["final_size_usd"])
+                                                        post_modifier_usd = float(final_size_usd)
+                                                        logging.getLogger(__name__).info(
+                                                            "NOTIONAL_CAPPED_BY_POLICY symbol=%s strategy=%s old_size=%s cap_usd=%s final_size=%s (short)",
+                                                            symbol,
+                                                            signal.strategy_name,
+                                                            _cap_res_s.get("old_size_usd"),
+                                                            _cap_res_s.get("cap_usd"),
+                                                            final_size_usd,
+                                                        )
+                                                        log_decision(
+                                                            "entry_adjusted",
+                                                            {
+                                                                "side": signal.side or "short",
+                                                                "blocking_stage": "post_risk_notional_cap",
+                                                                "risk_ceiling_usd": round(float(post_risk_engine_usd), 4),
+                                                                "final_size_usd": round(float(final_size_usd), 4),
+                                                                "effective_min_trade_usd": round(float(eff_min_trade_usd), 4),
+                                                                "final_notional_pct_of_equity": round(
+                                                                    float(final_size_usd)
+                                                                    / max(float(risk_capital_usd), 1e-9),
+                                                                    6,
+                                                                ),
+                                                                "notional_cap": _cap_res_s,
+                                                            },
+                                                            symbol=symbol,
+                                                            strategy_name=signal.strategy_name,
+                                                            reason_code="NOTIONAL_CAPPED_BY_POLICY",
+                                                        )
                                                     if final_size_usd >= eff_min_trade_usd:
                                                         final_executable_usd = min(final_size_usd, available_cash)
                                                         final_size_usd = final_executable_usd
@@ -2107,11 +2370,21 @@ class SimulationCycle:
                                                             "combo_mult": entry_combo_mult_s,
                                                             "setup": short_sig.setup_type,
                                                             "capital_bucket": normalize_bucket(getattr(signal, "capital_bucket", None)),
+                                                            "stop_distance_pct": round(
+                                                                abs(float(signal.entry_price) - float(signal.stop_loss))
+                                                                / max(float(signal.entry_price), 1e-9),
+                                                                6,
+                                                            ),
+                                                            "final_notional_pct_of_equity": round(
+                                                                float(final_size_usd) / max(float(risk_capital_usd), 1e-9), 6
+                                                            ),
                                                         }
                                                         if _under_risk_meta_s.get("under_risk_rescale"):
                                                             _opened_short["under_risk_rescale"] = _under_risk_meta_s[
                                                                 "under_risk_rescale"
                                                             ]
+                                                        if _cap_res_s.get("applied"):
+                                                            _opened_short["notional_cap"] = _cap_res_s
                                                         _opened_short.update(
                                                             _build_risk_efficiency_fields(
                                                                 final_size_usd=float(final_size_usd),
@@ -2227,6 +2500,9 @@ class SimulationCycle:
                                                             mod_breakdown=mod_breakdown,
                                                             exchange_preview=_ex_prev_s,
                                                         )
+                                                        if _cap_res_s.get("applied") and float(post_modifier_usd) < float(eff_min_trade_usd):
+                                                            _s_code_s = "NOTIONAL_CAPPED_BY_POLICY"
+                                                            _s_detail_s["blocking_stage"] = "notional_cap_after_risk_sizing"
                                                         sizing_trace_s["exchange_qty_preview"] = _ex_prev_s
                                                         sizing_trace_s["sizing_reject_classification"] = {
                                                             "reason_code": _s_code_s,
@@ -2240,6 +2516,8 @@ class SimulationCycle:
                                                             "setup": getattr(short_sig, "setup_type", None),
                                                             "sizing_reject_reason_code": _s_code_s,
                                                         }
+                                                        if _cap_res_s.get("applied"):
+                                                            rej_pl_s["notional_cap"] = _cap_res_s
                                                         rej_pl_s.update(
                                                             _build_risk_efficiency_fields(
                                                                 final_size_usd=float(post_modifier_usd),
@@ -2299,6 +2577,8 @@ class SimulationCycle:
                                                             and rej_pl_s.get("policy_squeeze_detail")
                                                         ):
                                                             _rej_meta_s["policy_squeeze_detail"] = rej_pl_s["policy_squeeze_detail"]
+                                                        if _cap_res_s.get("applied"):
+                                                            _rej_meta_s["notional_cap"] = _cap_res_s
                                                         rejected_signals.append({
                                                             "symbol": signal.symbol,
                                                             "strategy_name": signal.strategy_name,
@@ -2594,17 +2874,11 @@ class SimulationCycle:
                     exit_price = tp
                     note = "TP kích hoạt (giá chạm take profit)"
             if exit_price is not None:
-                close_trade = None
-                try:
-                    close_trade = executor.close_position(db, pos, exit_price, note=note)
-                    closed += 1
-                except Exception:
-                    try:
-                        close_trade = paper.close_position(db, pos, exit_price, note=note)
-                        closed += 1
-                    except Exception:
-                        pass
+                close_trade = _close_position_with_optional_paper(
+                    executor, paper, db, pos, exit_price, note=note
+                )
                 if close_trade:
+                    closed += 1
                     self.journal.record_outcome_from_close(db, pos, close_trade)
         db.flush()
         return {"closed": closed}
@@ -2727,26 +3001,22 @@ class SimulationCycle:
                 )
                 if th.get("force_close") and th.get("close_note"):
                     note_tf = th["close_note"]
-                    try:
-                        executor.close_position(db, pos, price_now, note=f"Thesis: {note_tf}")
+                    ct_tf = _close_position_with_optional_paper(
+                        executor, paper, db, pos, price_now, note=f"Thesis: {note_tf}"
+                    )
+                    if ct_tf:
                         actions.append(
                             {"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": note_tf}
                         )
-                    except Exception:
-                        try:
-                            paper.close_position(db, pos, price_now, note=f"Thesis: {note_tf}")
-                            actions.append(
-                                {"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": note_tf}
-                            )
-                        except Exception:
-                            actions.append(
-                                {
-                                    "symbol": pos.symbol,
-                                    "side": pos.side,
-                                    "action": "HOLD",
-                                    "reason": f"thesis close failed ({note_tf})",
-                                }
-                            )
+                    else:
+                        actions.append(
+                            {
+                                "symbol": pos.symbol,
+                                "side": pos.side,
+                                "action": "HOLD",
+                                "reason": f"thesis close failed ({note_tf})",
+                            }
+                        )
                     continue
             except Exception:
                 pass
@@ -2835,15 +3105,25 @@ class SimulationCycle:
                 elif regime == "high_momentum" and pos.side == "short":
                     note_close = "regime high_momentum (short không thuận)"
             if note_close:
-                try:
-                    executor.close_position(db, pos, price_now, note=f"Đóng chủ động: {note_close}")
+                ct_nc = _close_position_with_optional_paper(
+                    executor,
+                    paper,
+                    db,
+                    pos,
+                    price_now,
+                    note=f"Đóng chủ động: {note_close}",
+                )
+                if ct_nc:
                     actions.append({"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": note_close})
-                except Exception:
-                    try:
-                        paper.close_position(db, pos, price_now, note=f"Đóng chủ động: {note_close}")
-                        actions.append({"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": note_close})
-                    except Exception:
-                        actions.append({"symbol": pos.symbol, "side": pos.side, "action": "HOLD", "reason": f"lỗi khi đóng ({note_close})"})
+                else:
+                    actions.append(
+                        {
+                            "symbol": pos.symbol,
+                            "side": pos.side,
+                            "action": "HOLD",
+                            "reason": f"lỗi khi đóng ({note_close})",
+                        }
+                    )
                 continue
 
             # 1a) Decision layer v6: HOLD / REDUCE / CLOSE / HEDGE_PARTIAL — hedge chỉ khi hợp lệ
@@ -2949,30 +3229,72 @@ class SimulationCycle:
                         pos, price_now, klines, quote, pe_cfg, has_partial_closed=has_partial
                     )
                     if pe_result.action == "PROACTIVE_CLOSE":
-                        try:
-                            executor.close_position(
-                                db, pos, price_now,
-                                note=f"Proactive exit: {pe_result.reason_code} (score {pe_result.reversal_exit_score or 0:.2f})",
+                        ct_pe = _close_position_with_optional_paper(
+                            executor,
+                            paper,
+                            db,
+                            pos,
+                            price_now,
+                            note=(
+                                f"Proactive exit: {pe_result.reason_code} "
+                                f"(score {pe_result.reversal_exit_score or 0:.2f})"
+                            ),
+                        )
+                        if ct_pe:
+                            actions.append(
+                                {"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": pe_result.reason}
                             )
-                            actions.append({"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": pe_result.reason})
-                        except Exception:
-                            try:
-                                paper.close_position(db, pos, price_now, note=f"Proactive exit: {pe_result.reason_code}")
-                                actions.append({"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": pe_result.reason})
-                            except Exception:
-                                actions.append({"symbol": pos.symbol, "side": pos.side, "action": "HOLD", "reason": f"proactive exit lỗi: {pe_result.reason}"})
+                        else:
+                            actions.append(
+                                {
+                                    "symbol": pos.symbol,
+                                    "side": pos.side,
+                                    "action": "HOLD",
+                                    "reason": f"proactive exit lỗi: {pe_result.reason}",
+                                }
+                            )
                         continue
                     if pe_result.action == "PARTIAL_TP" and pe_result.partial_tp_pct > 0:
                         reduce_qty = round(float(pos.quantity) * pe_result.partial_tp_pct, 8)
                         if reduce_qty > 0 and reduce_qty < pos.quantity:
+                            partial_trade = None
                             try:
                                 if hasattr(executor, "reduce_position"):
-                                    executor.reduce_position(db, pos, reduce_qty, price_now, note=f"Partial TP: {pe_result.reason_code}")
-                                else:
-                                    paper.reduce_position(db, pos, reduce_qty, price_now, note=f"Partial TP: {pe_result.reason_code}")
-                                actions.append({"symbol": pos.symbol, "side": pos.side, "action": "PARTIAL_TP", "reason": pe_result.reason})
+                                    partial_trade = executor.reduce_position(
+                                        db,
+                                        pos,
+                                        reduce_qty,
+                                        price_now,
+                                        note=f"Partial TP: {pe_result.reason_code}",
+                                    )
+                                if partial_trade is None and not is_live_binance_executor(executor):
+                                    partial_trade = paper.reduce_position(
+                                        db,
+                                        pos,
+                                        reduce_qty,
+                                        price_now,
+                                        note=f"Partial TP: {pe_result.reason_code}",
+                                    )
                             except Exception:
-                                actions.append({"symbol": pos.symbol, "side": pos.side, "action": "HOLD", "reason": f"partial TP lỗi: {pe_result.reason}"})
+                                partial_trade = None
+                            if partial_trade:
+                                actions.append(
+                                    {
+                                        "symbol": pos.symbol,
+                                        "side": pos.side,
+                                        "action": "PARTIAL_TP",
+                                        "reason": pe_result.reason,
+                                    }
+                                )
+                            else:
+                                actions.append(
+                                    {
+                                        "symbol": pos.symbol,
+                                        "side": pos.side,
+                                        "action": "HOLD",
+                                        "reason": f"partial TP lỗi / không khớp sàn: {pe_result.reason}",
+                                    }
+                                )
                         continue
                     if pe_result.action == "MOVE_SL" and pe_result.suggested_sl is not None:
                         key_ss = (pos.symbol, pos.side)
@@ -3092,15 +3414,12 @@ class SimulationCycle:
                 price_u = price_u.price if price_u else 0
                 do_unwind, reason = should_unwind_hedge(pos, main_pos, price_u, klines_u, hedge_cfg)
                 if do_unwind and reason:
-                    try:
-                        executor.close_position(db, pos, price_u, note=f"Unwind: {reason}")
-                    except Exception:
-                        try:
-                            paper.close_position(db, pos, price_u, note=f"Unwind: {reason}")
-                        except Exception:
-                            pass
-                    actions.append({"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": reason})
-                    logging.getLogger(__name__).info("HEDGE_UNWIND symbol=%s reason=%s", pos.symbol, reason)
+                    ct_u = _close_position_with_optional_paper(
+                        executor, paper, db, pos, price_u, note=f"Unwind: {reason}"
+                    )
+                    if ct_u:
+                        actions.append({"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": reason})
+                        logging.getLogger(__name__).info("HEDGE_UNWIND symbol=%s reason=%s", pos.symbol, reason)
         except Exception:
             pass
         db.flush()
@@ -3157,15 +3476,9 @@ class SimulationCycle:
                 elif regime == "high_momentum" and pos.side == "short":
                     note = "Đóng chủ động: regime high_momentum (short không thuận)"
             if note:
-                try:
-                    executor.close_position(db, pos, exit_price, note=note)
+                ct_pc = _close_position_with_optional_paper(executor, paper, db, pos, exit_price, note=note)
+                if ct_pc:
                     closed += 1
-                except Exception:
-                    try:
-                        paper.close_position(db, pos, exit_price, note=note)
-                        closed += 1
-                    except Exception:
-                        pass
         db.flush()
         return {"closed": closed}
 

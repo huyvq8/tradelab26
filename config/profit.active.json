@@ -23,6 +23,30 @@
     "mr_only_min_trade_usd": 12,
     "under_risk_min_fraction_of_risk_ceiling": 0.65
   },
+  "entry_guardrails": {
+    "min_stop_distance_pct_default": 0.012,
+    "min_stop_distance_pct_by_strategy": {
+      "mean_reversion": 0.02
+    },
+    "min_stop_distance_pct_by_strategy_regime": {
+      "mean_reversion": {
+        "risk_off": 0.025
+      }
+    },
+    "max_notional_pct_of_equity_default": 0.2,
+    "max_notional_pct_of_equity_by_strategy_regime": {
+      "mean_reversion": {
+        "risk_off": 0.08
+      }
+    },
+    "mr_reversal_confirmation": {
+      "enabled": true,
+      "lower_wick_to_body_min": 1.1,
+      "recovery_close_pct_of_range_min": 0.45,
+      "volume_spike_ratio_min": 1.4,
+      "deceleration_ratio_max": 0.8
+    }
+  },
   "allocation": {
     "max_portfolio_heat_r": 4.0,
     "same_regime_reduce": 0.8,

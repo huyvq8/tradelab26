@@ -313,6 +313,13 @@ def run_cycle_job():
         elif signals_fired and len(opened) == 0:
             print(f"[Cycle] Co {len(signals_fired)} tin hieu nhung khong mo lenh (co the do loi khi dat lenh - xem log tren).")
         for sig in signals_fired:
+            try:
+                from core.observability.telegram_signal_dedupe import should_send_signal_telegram
+
+                if not should_send_signal_telegram(sig):
+                    continue
+            except Exception:
+                pass
             analysis = build_entry_analysis_from_dict(sig)
             msg = format_telegram_alert(analysis)
             if sig["symbol"] in opened:

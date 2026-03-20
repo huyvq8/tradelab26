@@ -4,6 +4,7 @@ Thực thi lệnh thật trên Binance Futures (USD-M).
 """
 from __future__ import annotations
 
+import logging
 import hashlib
 import hmac
 import time
@@ -50,6 +51,8 @@ _BALANCE_CACHE_TTL = 60.0  # giây — refresh sau 60s hoặc ngay khi có trade
 # allAlgoOrders: cache 5s trong cùng flow update TP/SL để tránh gọi nhiều lần (document/request).
 _ALGO_ORDERS_CACHE: dict[tuple[str, str, str], tuple[float, list]] = {}  # (base_url, symbol_b, position_side) -> (expiry, list)
 _ALGO_ORDERS_CACHE_TTL = 5.0
+
+_logger = logging.getLogger(__name__)
 
 
 def _binance_symbol(symbol: str) -> str:
@@ -452,6 +455,38 @@ class BinanceFuturesExecutor:
         _BALANCE_CACHE.pop(base, None)  # refresh balance sau khi mở lệnh
         return position
 
+    def _live_position_quantity(self, position: Position) -> float | None:
+        """REST positionAmt for this symbol/side — tránh reduceOnly 400 do qty > thực tế sau partial/fee drift."""
+        symbol_b = _binance_symbol(position.symbol)
+        try:
+            data = self._signed_request("GET", "/fapi/v2/positionRisk", {"symbol": symbol_b})
+        except Exception:
+            return None
+        if not isinstance(data, list):
+            return None
+        if self._hedge_mode is None:
+            self._hedge_mode = _is_hedge_mode(self)
+        want_long = (position.side or "").lower() == "long"
+        for item in data:
+            if (item.get("symbol") or "") != symbol_b:
+                continue
+            try:
+                amt = float(item.get("positionAmt", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if abs(amt) < 1e-12:
+                continue
+            ps = str(item.get("positionSide") or "BOTH").upper()
+            if self._hedge_mode:
+                if want_long and ps == "LONG" and amt > 0:
+                    return abs(amt)
+                if not want_long and ps == "SHORT" and amt < 0:
+                    return abs(amt)
+            else:
+                if (amt > 0 and want_long) or (amt < 0 and not want_long):
+                    return abs(amt)
+        return None
+
     def close_position(
         self, db: Session, position: Position, exit_price: float, note: str = ""
     ) -> Trade:
@@ -461,7 +496,20 @@ class BinanceFuturesExecutor:
         if self._hedge_mode is None:
             self._hedge_mode = _is_hedge_mode(self)
         position_side = ("LONG" if position.side == "long" else "SHORT") if self._hedge_mode else "BOTH"
-        qty_str = str(round(position.quantity, 8))
+        lot = _get_lot_size(self.base_url, symbol_b)
+        live_qty = self._live_position_quantity(position)
+        want = float(position.quantity or 0)
+        if live_qty is not None:
+            want = min(want, live_qty)
+        if want <= 0:
+            raise RuntimeError(
+                f"No closable quantity for {position.symbol} (db_qty={position.quantity}, live_qty={live_qty})"
+            )
+        qty_str = _quantity_to_string(want, lot)
+        qf = float(qty_str)
+        min_q = float(lot.get("minQty", 0.001) or 0.001)
+        if qf + 1e-12 < min_q:
+            raise RuntimeError(f"Close qty {qty_str} below minQty {min_q} for {symbol_b}")
         try:
             res = self._signed_request("POST", "/fapi/v1/order", {
                 "symbol": symbol_b,
@@ -472,13 +520,18 @@ class BinanceFuturesExecutor:
                 "positionSide": position_side,
                 "newOrderRespType": "RESULT",
             })
-            exit_price = float(res.get("avgPrice") or res.get("price") or exit_price)
-        except Exception:
-            pass
+            exit_px = float(res.get("avgPrice") or res.get("price") or exit_price)
+            exec_qty = float(res.get("executedQty") or qty_str)
+            exec_qty = float(_quantity_to_string(exec_qty, lot))
+        except Exception as e:
+            _logger.warning("Binance close_position failed symbol=%s: %s", position.symbol, e)
+            raise
         _BALANCE_CACHE.pop(getattr(self, "base_url", "") or "", None)
+        position.quantity = exec_qty
         from core.execution.simulator import PaperExecutionSimulator
+
         sim = PaperExecutionSimulator()
-        return sim.close_position(db, position, exit_price, note or "Đóng thủ công (Futures)")
+        return sim.close_position(db, position, exit_px, note or "Đóng (Futures)")
 
     def reduce_position(
         self,
@@ -489,7 +542,7 @@ class BinanceFuturesExecutor:
         note: str = "",
     ) -> Trade | None:
         """Chốt một phần vị thế (partial TP) trên Binance: lệnh MARKET reduceOnly, cập nhật DB."""
-        if reduce_quantity <= 0 or reduce_quantity >= position.quantity:
+        if reduce_quantity <= 0:
             return None
         symbol_b = _binance_symbol(position.symbol)
         close_side = "SELL" if position.side == "long" else "BUY"
@@ -497,10 +550,21 @@ class BinanceFuturesExecutor:
             self._hedge_mode = _is_hedge_mode(self)
         position_side = ("LONG" if position.side == "long" else "SHORT") if self._hedge_mode else "BOTH"
         lot = _get_lot_size(self.base_url, symbol_b)
-        min_qty = lot.get("minQty", 0.001)
-        step = lot.get("stepSize", "0.001")
-        qty_str = _quantity_to_string(reduce_quantity, lot)
-        if float(qty_str) <= 0:
+        min_qty = float(lot.get("minQty", 0.001) or 0.001)
+        live_qty = self._live_position_quantity(position)
+        cap = float(position.quantity or 0)
+        if live_qty is not None:
+            cap = min(cap, live_qty)
+        if cap <= 0:
+            return None
+        rq = min(float(reduce_quantity), cap)
+        if rq <= 0:
+            return None
+        qty_str = _quantity_to_string(rq, lot)
+        q_round = float(qty_str)
+        if q_round <= 0 or q_round + 1e-12 < min_qty:
+            return None
+        if q_round >= cap - 1e-12:
             return None
         try:
             res = self._signed_request("POST", "/fapi/v1/order", {
@@ -514,9 +578,10 @@ class BinanceFuturesExecutor:
             })
             exit_price = float(res.get("avgPrice") or res.get("price") or exit_price)
             exec_qty = float(res.get("executedQty") or qty_str)
-        except Exception:
-            from core.execution.simulator import PaperExecutionSimulator
-            return PaperExecutionSimulator().reduce_position(db, position, reduce_quantity, exit_price, note)
+            exec_qty = float(_quantity_to_string(exec_qty, lot))
+        except Exception as e:
+            _logger.warning("Binance reduce_position failed symbol=%s: %s", position.symbol, e)
+            return None
         position.quantity = round(position.quantity - exec_qty, 8)
         direction = 1 if position.side == "long" else -1
         gross_pnl = (exit_price - position.entry_price) * exec_qty * direction

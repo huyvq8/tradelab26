@@ -12,7 +12,9 @@
     "CONTEXT_GATE_DISTANCE_FROM_HIGH": 75,
     "CONTEXT_GATE_BARS_SINCE_HIGH": 75,
     "CONTEXT_GATE_PULLBACK": 75,
-    "CONTEXT_GATE_EXTENSION": 75
+    "CONTEXT_GATE_EXTENSION": 75,
+    "MR_NO_REVERSAL_CONFIRMATION": 120,
+    "STOP_DISTANCE_TOO_TIGHT": 120
   },
   "never_dedupe_codes": [
     "SIZE_TOO_SMALL_POST_SIZING",
@@ -22,6 +24,7 @@
     "BELOW_INTERNAL_MIN_TRADE_USD",
     "REDUCED_TOO_MUCH_BY_POLICY",
     "SIZING_CLASSIFY_UNEXPECTED_GE_MIN",
+    "NOTIONAL_CAPPED_BY_POLICY",
     "COMBO_BLOCKED_EDGE",
     "BRAIN_V4_ENTRY_STRICTNESS",
     "BRAIN_V4_ENTRY_SENSITIVITY",
@@ -34,7 +37,17 @@
       "confirmation_volume_spike_ratio",
       "confirmation_body_range_ratio"
     ],
-    "ENTRY_TIMING_COOLDOWN": ["cooldown_seconds_remaining"]
+    "ENTRY_TIMING_COOLDOWN": ["cooldown_seconds_remaining"],
+    "MR_NO_REVERSAL_CONFIRMATION": [
+      "stop_distance_pct",
+      "planned_r_multiple",
+      "entry_price"
+    ],
+    "STOP_DISTANCE_TOO_TIGHT": [
+      "stop_distance_pct_new",
+      "planned_r_new",
+      "entry_price"
+    ]
   },
   "default_state_key_paths": [
     "confirmation_volume_spike_ratio",

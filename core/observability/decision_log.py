@@ -74,3 +74,10 @@ def log_decision(
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
     except Exception:
         pass
+    if event in ("entry_rejected", "entry_opened"):
+        try:
+            from core.observability.guardrail_learning import append_guardrail_learning_from_decision_row
+
+            append_guardrail_learning_from_decision_row(row)
+        except Exception:
+            pass

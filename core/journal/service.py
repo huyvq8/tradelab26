@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from core.journal.models import JournalEntry
 from core.journal.context_builder import (
     build_tp_sl_explanation,
+    deserialize_market_context,
     serialize_reasons,
     serialize_market_context,
     serialize_mistake_tags,
@@ -222,6 +223,24 @@ class JournalService:
             exit_reason=exit_reason,
             mistake_tags=mistake_tags_list if mistake_tags_list else None,
         )
+        try:
+            mc = deserialize_market_context(journal.market_context)
+            if isinstance(mc, dict):
+                gs = mc.get("guardrail_snapshot")
+                if isinstance(gs, dict):
+                    close_outcome: list[str] = []
+                    if pnl > 0:
+                        close_outcome.append("win")
+                    elif pnl < 0:
+                        close_outcome.append("loss")
+                    if exit_reason == "sl_hit" and hold_min < 15:
+                        close_outcome.append("fast_stopout")
+                    gs2 = {**gs, "close_outcome_tags": close_outcome, "hold_minutes": round(hold_min, 2)}
+                    mc["guardrail_snapshot"] = gs2
+                    journal.market_context = serialize_market_context(mc)
+                    db.flush()
+        except Exception:
+            pass
         if entry:
             try:
                 from core.brain.evaluation import maybe_record_delayed_p2_evaluation

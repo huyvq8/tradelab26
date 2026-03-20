@@ -44,7 +44,9 @@ from core.strategies.implementations import build_strategy_set
 from core.risk.daily_r import MIN_RISK_USD_FOR_R_AGGREGATION, sum_daily_realized_r_from_trades
 from core.risk.trade_r_metrics import planned_r_multiple
 from core.risk.candidate_quality import load_candidate_quality_config
-from core.profit.volatility_guard import check_volatility_guard, load_profit_config
+from core.profit.volatility_guard import check_volatility_guard
+from core.profit.profit_config_resolve import load_profit_config_resolved
+from core.observability.guardrail_row import dashboard_candidate_guardrail_row, row_from_decision_event
 from core.profit.position_sizer import get_confidence_multiplier, get_regime_score
 from core.profit.strategy_weight_engine import compute_strategy_weights, get_strategy_weight
 from core.config import (
@@ -392,7 +394,7 @@ try:
         strategies = [s for s in strategies if getattr(s, "name", "") == _runtime_single_strategy]
     _cand_cfg = load_candidate_quality_config()
     _min_r = float(_cand_cfg.get("min_candidate_r_multiple", 0.8) or 0.8)
-    _profit_cfg = load_profit_config()
+    _profit_cfg = load_profit_config_resolved()
     _sw_cfg = (_profit_cfg.get("strategy_weight") or {})
     try:
         with SessionLocal() as _wdb:
@@ -456,6 +458,17 @@ try:
                     )
                 )
                 _exec_ok = (_pr is not None and _pr >= _min_r) and not _blocked_policy and not _blocked_exchange_min
+                _eq_preview = float(getattr(settings, "default_capital_usd", 1000) or 1000)
+                try:
+                    _gr = dashboard_candidate_guardrail_row(
+                        sig=sig,
+                        regime=regime,
+                        klines_1h=klines_1h_full,
+                        guard_cfg=(_profit_cfg.get("entry_guardrails") or {}),
+                        equity_usd=_eq_preview,
+                    )
+                except Exception:
+                    _gr = {}
                 signals_now.append({
                     "symbol": symbol,
                     "regime": regime,
@@ -486,6 +499,13 @@ try:
                     "pipeline_stage": "strategy_candidate",
                     "klines_1h_bars": klb,
                     "levels_from_structure": bool(getattr(sig, "levels_from_structure", False)),
+                    "stop_distance_pct": _gr.get("stop_distance_pct_after_floor") or _gr.get("stop_distance_pct"),
+                    "final_notional_pct_of_equity": _gr.get("final_notional_pct_preview"),
+                    "risk_efficiency_ratio": _gr.get("risk_efficiency_ratio_preview"),
+                    "stop_floor_applied": _gr.get("stop_floor_applied"),
+                    "notional_cap_applied": _gr.get("notional_cap_would_apply") or "no",
+                    "mr_reversal_confirmation": _gr.get("mr_reversal_confirmation"),
+                    "rejection_stage": _gr.get("rejection_stage"),
                 })
             else:
                 if strat.name == "trend_following":
@@ -760,6 +780,25 @@ with SessionLocal() as db:
                 "MAX_CONCURRENT_TRADES",
             }:
                 detail = "Risk reject: maximum concurrent trades reached for current bucket/scope."
+            elif (r.get("reason_code") or "").strip() == "STOP_DISTANCE_TOO_TIGHT" and pl:
+                detail = (
+                    f"Stop floor: old_pct={pl.get('stop_distance_pct_old')} new_pct={pl.get('stop_distance_pct_new')} "
+                    f"| planned_R old/new={pl.get('planned_r_old')}/{pl.get('planned_r_new')} "
+                    f"| stage={pl.get('blocking_stage')}"
+                )
+            elif (r.get("reason_code") or "").strip() == "MR_NO_REVERSAL_CONFIRMATION" and pl:
+                rd = pl.get("reversal_diagnostics") if isinstance(pl.get("reversal_diagnostics"), dict) else {}
+                detail = (
+                    f"MR reversal not confirmed: wick={rd.get('lower_wick_to_body')} "
+                    f"recovery={rd.get('recovery_close_pct_of_range')} vol_spike={rd.get('volume_spike_ratio')} "
+                    f"deceleration={rd.get('deceleration_ok')}"
+                )
+            elif (r.get("reason_code") or "").strip() == "NOTIONAL_CAPPED_BY_POLICY" and pl:
+                nc = pl.get("notional_cap") if isinstance(pl.get("notional_cap"), dict) else {}
+                detail = (
+                    f"Notional capped: old={nc.get('old_size_usd')} cap={nc.get('cap_usd')} "
+                    f"final={pl.get('final_size_usd')} min={pl.get('effective_min_trade_usd')}"
+                )
             elif (r.get("reason_code") or "").strip() in _SIZING_DETAIL_CODES and pl:
                 sizing_trace_payload = pl.get("sizing_trace") if isinstance(pl.get("sizing_trace"), dict) else {}
                 sr = (
@@ -793,16 +832,9 @@ with SessionLocal() as db:
                         f"conf={diag.get('after_confidence_size_usd')} regime={diag.get('after_regime_size_usd')} "
                         f"dyn={diag.get('after_dynamic_sizing_usd')} policy={diag.get('after_policy_size_usd')}"
                     )
-            wr.append(
-                {
-                    "ts": r.get("ts"),
-                    "event": r.get("event"),
-                    "symbol": r.get("symbol"),
-                    "strategy": r.get("strategy_name"),
-                    "reason_code": r.get("reason_code"),
-                    "detail": detail,
-                }
-            )
+            _grow = row_from_decision_event(r)
+            _grow["detail"] = detail
+            wr.append(_grow)
         with st.expander("Worker: decision_log — entry_opened / entry_rejected (effective watchlist)", expanded=True):
             st.caption(
                 "`BOT_EDGE_MIN_SCORE`: ngưỡng theo **mode** + **strategy** (`config/bot_edge_modes.v1.json` → `bot_edge_min_by_mode`). "
@@ -811,6 +843,20 @@ with SessionLocal() as db:
             st.dataframe(pd.DataFrame(wr), width="stretch")
     elif not recent_cycle_summaries:
         st.caption("Không đọc được decision_log hoặc chưa có dòng cho effective watchlist / cycle summary.")
+    try:
+        from core.observability.guardrail_metrics import compute_guardrail_metrics
+
+        _gmet = compute_guardrail_metrics(
+            db_session=db,
+            portfolio_id=(portfolios[0].id if portfolios else None),
+        )
+        with st.expander("Guardrail effectiveness (24h / 7d) + MR report", expanded=False):
+            st.caption(
+                "Đếm từ `decision_log.jsonl` trong cửa sổ thời gian; fast stopout (DB) là proxy SL nhanh sau mở lệnh."
+            )
+            st.json(_gmet)
+    except Exception as _gme:
+        st.caption(f"Guardrail metrics: {_gme}")
     try:
         from core.observability.reject_summary import build_entry_reject_summary
 
@@ -1600,10 +1646,10 @@ Dashboard chỉ **xem** tín hiệu và lệnh theo dữ liệu hiện tại; vi
     st.subheader("Profit Layer (v6)")
     st.caption("Sizing động (confidence × regime × strategy weight × allocation), volatility guard, expectancy.")
     try:
-        from core.profit.volatility_guard import load_profit_config
+        from core.profit.profit_config_resolve import load_profit_config_resolved as _load_resolved
         from core.profit.strategy_weight_engine import compute_strategy_weights
         from core.profit.expectancy_engine import compute_expectancy_map
-        profit_cfg = load_profit_config()
+        profit_cfg = _load_resolved()
         with st.expander("Profit Layer Decision (công thức & config)", expanded=False):
             st.markdown("**Công thức size:** `base_size × confidence_mult × regime_score × strategy_weight × portfolio_heat_mult`; volatility guard block/reduce trước risk.")
             if profit_cfg.get("sizing"):

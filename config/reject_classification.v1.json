@@ -4,7 +4,9 @@
   "good_reject_codes": [
     "STRUCTURAL_LEVELS",
     "SIGNAL_LEVELS_ATR_CAP",
-    "ENTRY_COOLDOWN"
+    "ENTRY_COOLDOWN",
+    "MR_NO_REVERSAL_CONFIRMATION",
+    "STOP_DISTANCE_TOO_TIGHT"
   ],
   "policy_reject_prefixes": ["BRAIN_V4_", "CORRELATION_"],
   "policy_reject_codes": [
@@ -28,7 +30,8 @@
     "REDUCED_TOO_MUCH_BY_POLICY",
     "SIZING_CLASSIFY_UNEXPECTED_GE_MIN",
     "PRE_SIZE_BELOW_MIN",
-    "PRE_SIZING_BELOW_MIN_EXECUTABLE"
+    "PRE_SIZING_BELOW_MIN_EXECUTABLE",
+    "NOTIONAL_CAPPED_BY_POLICY"
   ],
   "default_bucket": "good_reject"
 }

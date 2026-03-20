@@ -13,6 +13,7 @@ from core.market_data.client import get_klines_1h, get_quotes_with_fallback
 from core.observability.decision_log import log_decision
 from core.portfolio.models import Portfolio, Position
 from core.regime.detector import derive_regime
+from core.execution.executor_kind import is_live_binance_executor
 
 from core.brain.change_point import compute_change_point_for_symbol
 from core.brain.reflex import resolve_reflex
@@ -177,6 +178,7 @@ def try_brain_v4_reflex_for_position(
             pass
 
     if reflex.primary_action == "FORCE_EXIT":
+        ct = None
         try:
             ct = executor.close_position(
                 db,
@@ -184,38 +186,46 @@ def try_brain_v4_reflex_for_position(
                 price_now,
                 note=f"BrainV4 reflex HIGH: {cp.shift_type} cp={cp.change_point_score:.2f}",
             )
-            _persist_reflex("CLOSE", [ct.id] if ct is not None else [])
+        except Exception as e:
+            if is_live_binance_executor(executor):
+                logger.warning("brain_v4 reflex exit failed (live): %s", e)
+            else:
+                try:
+                    ct = paper.close_position(
+                        db,
+                        pos,
+                        price_now,
+                        note=f"BrainV4 reflex HIGH: {cp.shift_type}",
+                    )
+                except Exception as e2:
+                    logger.exception("brain_v4 reflex exit failed: %s", e2)
+        if ct is not None:
+            _persist_reflex("CLOSE", [ct.id])
             return True, {"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": "brain_v4_reflex_exit"}
-        except Exception:
-            try:
-                ct = paper.close_position(
-                    db,
-                    pos,
-                    price_now,
-                    note=f"BrainV4 reflex HIGH: {cp.shift_type}",
-                )
-                _persist_reflex("CLOSE", [ct.id] if ct is not None else [])
-                return True, {"symbol": pos.symbol, "side": pos.side, "action": "CLOSE", "reason": "brain_v4_reflex_exit"}
-            except Exception as e:
-                logger.exception("brain_v4 reflex exit failed: %s", e)
-                return False, None
+        return False, None
 
     if reflex.primary_action == "PARTIAL_REDUCE" and reflex.reduce_fraction > 0:
         reduce_qty = round(float(pos.quantity) * reflex.reduce_fraction, 8)
         if 0 < reduce_qty < float(pos.quantity or 0):
+            pt = None
             try:
                 if hasattr(executor, "reduce_position"):
-                    pt = executor.reduce_position(db, pos, reduce_qty, price_now, note="BrainV4 reflex MEDIUM partial")
-                else:
-                    pt = paper.reduce_position(db, pos, reduce_qty, price_now, note="BrainV4 reflex MEDIUM partial")
-                _persist_reflex("PARTIAL", [pt.id] if pt is not None else [])
+                    pt = executor.reduce_position(
+                        db, pos, reduce_qty, price_now, note="BrainV4 reflex MEDIUM partial"
+                    )
+                if pt is None and not is_live_binance_executor(executor):
+                    pt = paper.reduce_position(
+                        db, pos, reduce_qty, price_now, note="BrainV4 reflex MEDIUM partial"
+                    )
+            except Exception as e:
+                logger.warning("brain_v4 reflex partial failed: %s", e)
+            if pt is not None:
+                _persist_reflex("PARTIAL", [pt.id])
                 return True, {
                     "symbol": pos.symbol,
                     "side": pos.side,
                     "action": "PARTIAL_TP",
                     "reason": "brain_v4_reflex_partial",
                 }
-            except Exception:
-                pass
 
     return False, None

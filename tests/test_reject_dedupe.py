@@ -15,6 +15,9 @@ def test_classify_buckets():
     assert classify_entry_reject("SIZE_TOO_SMALL_POST_SIZING") == "sizing_reject"
     assert classify_entry_reject("BELOW_INTERNAL_MIN_TRADE_USD") == "sizing_reject"
     assert classify_entry_reject("REDUCED_TOO_MUCH_BY_POLICY") == "sizing_reject"
+    assert classify_entry_reject("NOTIONAL_CAPPED_BY_POLICY") == "sizing_reject"
+    assert classify_entry_reject("MR_NO_REVERSAL_CONFIRMATION") == "good_reject"
+    assert classify_entry_reject("STOP_DISTANCE_TOO_TIGHT") == "good_reject"
     assert classify_entry_reject("PRE_SIZING_BELOW_MIN_EXECUTABLE") == "sizing_reject"
 
 

@@ -1,0 +1,28 @@
+{
+  "MR_SAFE": {
+    "entry_guardrails": {
+      "min_stop_distance_pct_default": 0.018,
+      "mr_reversal_confirmation": {
+        "enabled": true,
+        "lower_wick_to_body_min": 1.25,
+        "recovery_close_pct_of_range_min": 0.5,
+        "volume_spike_ratio_min": 1.55,
+        "deceleration_ratio_max": 0.75
+      },
+      "max_notional_pct_of_equity_default": 0.06
+    }
+  },
+  "MR_BALANCED": {
+    "entry_guardrails": {
+      "min_stop_distance_pct_default": 0.012,
+      "mr_reversal_confirmation": {
+        "enabled": true,
+        "lower_wick_to_body_min": 1.1,
+        "recovery_close_pct_of_range_min": 0.45,
+        "volume_spike_ratio_min": 1.4,
+        "deceleration_ratio_max": 0.8
+      },
+      "max_notional_pct_of_equity_default": 0.09
+    }
+  }
+}
